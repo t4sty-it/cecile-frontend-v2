@@ -1,0 +1,23 @@
+.app-graph {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #cba;
+
+  background: rgba(lightblue, 0.5);
+
+  svg {
+    // border: 1px solid red;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+  }
+  
+  &__nodes {
+    .app-node {
+      position: absolute;
+    }
+  }
+}
