@@ -7,7 +7,17 @@ export default function AppGraphEdge({
   src: Point
   dst: Point
 }) {
+
+  const off = Math.sqrt(Math.pow(src.x - dst.x, 2) + Math.pow(src.y - dst.y, 2)) * 0.4
+
+  const d = () => [
+    `M ${src.x}, ${src.y}`,
+    `C ${src.x + off}, ${src.y}`,
+    `${dst.x - off}, ${dst.y}`,
+    `${dst.x}, ${dst.y}`
+  ].join(' ')
+
   return (
-    <line stroke='red' strokeWidth={1} x1={src.x} y1={src.y} x2={dst.x} y2={dst.y} />
+    <path stroke='white' strokeWidth={2} strokeDasharray='4 0 0' d={d()} fill="transparent" />
   )
 }
