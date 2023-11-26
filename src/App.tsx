@@ -29,7 +29,7 @@ function App() {
       name: 'OUT',
       type: 'output',
       dataType: 'number',
-      parent: nodes[0],
+      parentId: nodes[0].id,
       offset: {x: 300, y: 50}
     },
     {
@@ -37,17 +37,25 @@ function App() {
       name: 'IN',
       type: 'input',
       dataType: 'number',
-      parent: nodes[1],
+      parentId: nodes[1].id,
       offset: {x: 0, y: 50}
     }
   ]
 
-  const edges: Edge[] = [
+  const [edges, setEdges] = useState<Edge[]>([
     {
       src: params[0],
       dst: params[1]
     }
-  ]
+  ])
+  // const edges: Edge[] = [
+  //   {
+  //     src: params[0],
+  //     dst: params[1]
+  //   }
+  // ]
+
+  // const setEdges = (e: (ed: Edge[]) => void) => {}
 
   const move = (target: Node, point: Point) => {
     setNodes(nodes =>
@@ -57,6 +65,17 @@ function App() {
           : node))
   }
 
+  const toggleConnection = (src: Param, dst: Param) => {
+    const edgeIdx = edges.findIndex(e => 
+      e.src.id == src.id &&
+      e.dst.id == dst.id
+    )
+
+    if (edgeIdx >= 0)
+      setEdges(edges => edges.toSpliced(edgeIdx, 1))
+    else
+      setEdges(edges => [...edges, {src, dst}])
+  }
 
   return (
     <div className='app'>
@@ -65,6 +84,7 @@ function App() {
         params={params}
         edges={edges}
         onMoveNode={move}
+        onToggleConnection={toggleConnection}
       />
     </div>
   )

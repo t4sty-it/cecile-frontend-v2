@@ -51,7 +51,7 @@ export default function AppNode({
   }, [dragging])
 
   return (
-    <div ref={ref} className="app-node" style={style} onMouseDownCapture={startDrag}>
+    <div ref={ref} className="app-node" style={style} onMouseDown={startDrag}>
       <div className="app-node__name">{name}</div>
       <div className="app-node__params app-node__params--input">{inputParams}</div>
       <div className="app-node__params app-node__params--output">{outputParams}</div>
