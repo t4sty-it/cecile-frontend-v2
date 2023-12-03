@@ -3,9 +3,18 @@ import AppGraph from './components/AppGraph/AppGraph'
 import { Edge } from './data/Edge'
 import { Node } from './data/Node'
 import { Param } from './data/Param'
+import { Point } from './data/Point'
 
 import { useState } from 'react'
-import { Point } from './data/Point'
+import ConsoleInput from './components/ConsoleInput/ConsoleInput'
+import { fuzzyFind } from './utils/fuzzyFind'
+
+const commands = [
+  'uno',
+  'due',
+  'tre'
+]
+
 
 function App() {
 
@@ -48,14 +57,6 @@ function App() {
       dst: params[1]
     }
   ])
-  // const edges: Edge[] = [
-  //   {
-  //     src: params[0],
-  //     dst: params[1]
-  //   }
-  // ]
-
-  // const setEdges = (e: (ed: Edge[]) => void) => {}
 
   const move = (target: Node, point: Point) => {
     setNodes(nodes =>
@@ -77,6 +78,17 @@ function App() {
       setEdges(edges => [...edges, {src, dst}])
   }
 
+  const onCommand = (cmd: string) => {
+    console.log('CMD', cmd)
+  }
+  
+  const [hints, setHints] = useState<string[]>([])
+  const onInput = (input: string) => {
+    if (input.length > 0)
+      setHints(fuzzyFind(input, commands))
+    else setHints([])
+  }
+
   return (
     <div className='app'>
       <AppGraph
@@ -85,6 +97,12 @@ function App() {
         edges={edges}
         onMoveNode={move}
         onToggleConnection={toggleConnection}
+      />
+
+      <ConsoleInput
+        onCommand={onCommand}
+        onInput={onInput}
+        hints={hints}
       />
     </div>
   )

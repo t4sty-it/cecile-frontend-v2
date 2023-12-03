@@ -1,0 +1,17 @@
+.console-input {
+  input {
+    width: 100%;
+  }
+
+  &__hints {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    width: 100%;
+
+    .app-select {
+      display: flex;
+      flex-direction: column-reverse;
+    }
+  }
+}
