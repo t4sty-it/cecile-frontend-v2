@@ -1,13 +1,13 @@
 import './App.scss'
 import AppGraph from './components/AppGraph/AppGraph'
-import { Edge } from './data/Edge'
-import { Node } from './data/Node'
-import { Param } from './data/Param'
-import { Point } from './data/Point'
 
 import { useState } from 'react'
 import ConsoleInput from './components/ConsoleInput/ConsoleInput'
 import { fuzzyFind } from './utils/fuzzyFind'
+import { useGraphData } from './hooks/useGraphData'
+import { useMousePosition } from './hooks/useMousePosition'
+import { Node } from './data/Node'
+import { Param } from './data/Param'
 
 const commands = [
   'uno',
@@ -17,69 +17,33 @@ const commands = [
 
 
 function App() {
+  const graph = useGraphData()
 
-  const [nodes, setNodes] = useState<Node[]>([
-    {
-      id: 'n01',
-      name: 'N01',
-      position: {x: 100, y: 100},
-    },
-
-    {
-      id: 'n02',
-      name: 'N02',
-      position: {x: 200, y: 200},
-    }
-  ])
-
-  const params: Param[] = [
-    {
-      id: 'n01-out',
-      name: 'OUT',
-      type: 'output',
-      dataType: 'number',
-      parentId: nodes[0].id,
-      offset: {x: 300, y: 50}
-    },
-    {
-      id: 'n02-in',
-      name: 'IN',
-      type: 'input',
-      dataType: 'number',
-      parentId: nodes[1].id,
-      offset: {x: 0, y: 50}
-    }
-  ]
-
-  const [edges, setEdges] = useState<Edge[]>([
-    {
-      src: params[0],
-      dst: params[1]
-    }
-  ])
-
-  const move = (target: Node, point: Point) => {
-    setNodes(nodes =>
-      nodes.map(node =>
-        node.id === target.id
-          ? {...target, position: point}
-          : node))
-  }
-
-  const toggleConnection = (src: Param, dst: Param) => {
-    const edgeIdx = edges.findIndex(e => 
-      e.src.id == src.id &&
-      e.dst.id == dst.id
-    )
-
-    if (edgeIdx >= 0)
-      setEdges(edges => edges.toSpliced(edgeIdx, 1))
-    else
-      setEdges(edges => [...edges, {src, dst}])
-  }
+  const mousePosition = useMousePosition()
 
   const onCommand = (cmd: string) => {
-    console.log('CMD', cmd)
+    const actualCmd = fuzzyFind(cmd, commands)[0]
+    if (actualCmd == null) throw 'Command not found'
+    execCommand(actualCmd)
+  }
+
+  const execCommand = (cmd: string) => {
+    const node: Node = {
+      id: '' + Math.random(),
+      name: cmd,
+      position: mousePosition
+    }
+
+    const input: Param = {
+      id: '' + Math.random(),
+      name: 'input',
+      dataType: 'number',
+      parentId: node.id,
+      type: 'input',
+      offset: {x: 0, y: 50}
+    }
+
+    graph.addNode(node, [input])
   }
   
   const [hints, setHints] = useState<string[]>([])
@@ -92,11 +56,11 @@ function App() {
   return (
     <div className='app'>
       <AppGraph
-        nodes={nodes}
-        params={params}
-        edges={edges}
-        onMoveNode={move}
-        onToggleConnection={toggleConnection}
+        nodes={graph.nodes}
+        params={graph.params}
+        edges={graph.edges}
+        onMoveNode={graph.moveNode}
+        onToggleConnection={graph.toggleConnection}
       />
 
       <ConsoleInput
