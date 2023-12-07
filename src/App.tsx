@@ -6,8 +6,7 @@ import ConsoleInput from './components/ConsoleInput/ConsoleInput'
 import { fuzzyFind } from './utils/fuzzyFind'
 import { useGraphData } from './hooks/useGraphData'
 import { useMousePosition } from './hooks/useMousePosition'
-import { Node } from './data/Node'
-import { Param } from './data/Param'
+import { buildNode } from './lib/commands/node'
 
 const commands = [
   'uno',
@@ -28,22 +27,17 @@ function App() {
   }
 
   const execCommand = (cmd: string) => {
-    const node: Node = {
-      id: '' + Math.random(),
-      name: cmd,
-      position: mousePosition
-    }
+    const [node, params] = buildNode(
+      cmd,
+      {
+        nodeOverrides: {
+          name: cmd,
+          position: mousePosition
+        }
+      }
+    )
 
-    const input: Param = {
-      id: '' + Math.random(),
-      name: 'input',
-      dataType: 'number',
-      parentId: node.id,
-      type: 'input',
-      offset: {x: 0, y: 50}
-    }
-
-    graph.addNode(node, [input])
+    graph.addNode(node, params)
   }
   
   const [hints, setHints] = useState<string[]>([])

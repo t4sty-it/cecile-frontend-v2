@@ -3,10 +3,19 @@ import { Point, isPoint } from "./Point"
 export interface Param {
   id: string
   name: string
+  value?: number | string
   type: 'input' | 'output'
-  dataType: 'number' | 'string'
+  dataType: 'number' | 'string' | 'signal'
+  options?: ParamOption[]
+  min?: number
+  max?: number
   parentId: string
   offset: Point
+}
+
+export interface ParamOption {
+  value: string,
+  label: string
 }
 
 function hasKeyOfType<T>(obj: Object, name: keyof T & string, type: string) {

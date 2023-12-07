@@ -4,51 +4,11 @@ import { Param } from "@/data/Param";
 import { Point } from "@/data/Point";
 import { useState } from "react";
 
-const mockNodes: Node[] = [
-  {
-    id: 'n01',
-    name: 'N01',
-    position: {x: 100, y: 100},
-  },
-
-  {
-    id: 'n02',
-    name: 'N02',
-    position: {x: 200, y: 200},
-  },
-]
-
-const mockParams: Param[] = [
-  {
-    id: 'n01-out',
-    name: 'OUT',
-    type: 'output',
-    dataType: 'number',
-    parentId: mockNodes[0].id,
-    offset: {x: 300, y: 50}
-  },
-  {
-    id: 'n02-in',
-    name: 'IN',
-    type: 'input',
-    dataType: 'number',
-    parentId: mockNodes[1].id,
-    offset: {x: 0, y: 50}
-  },
-]
-
-const mockEdges: Edge[] = [
-  {
-    src: mockParams[0],
-    dst: mockParams[1],
-  },
-]
-
 export function useGraphData() {
 
-  const [nodes, setNodes] = useState<Node[]>(mockNodes)
-  const [params, setParams] = useState<Param[]>(mockParams)
-  const [edges, setEdges] = useState<Edge[]>(mockEdges)
+  const [nodes, setNodes] = useState<Node[]>([])
+  const [params, setParams] = useState<Param[]>([])
+  const [edges, setEdges] = useState<Edge[]>([])
 
   const toggleConnection = (src: Param, dst: Param) => {
     const edgeIdx = edges.findIndex(e => 
@@ -72,8 +32,17 @@ export function useGraphData() {
 
   const addNode = (node: Node, params: Param[]) => {
     setNodes(nodes => [...nodes, node])
-    setParams(p => [...p, ...params])
+    const paramsWithFixedOffset = params.map(_fixParamOffset)
+    setParams(p => [...p, ...paramsWithFixedOffset])
   }
+
+  const _fixParamOffset = (param: Param, idx: number) => ({
+    ...param,
+    offset: {
+      x: param.type == 'input' ? 0 : 300,
+      y: 8 + (idx + 1) * 25 + 25/2
+    }
+  }) as Param
 
   return {
     nodes, params, edges,
