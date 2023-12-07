@@ -1,0 +1,66 @@
+.app-param {
+  $root: &;
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  gap: 1em;
+
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+
+  &--output {
+    flex-direction: row-reverse;
+  }
+
+  &__input {
+    flex: 1;
+    input {
+      width: 100%;
+    }
+  }
+
+  &__connector {
+    position: absolute;
+    top: 50%;
+    width: 32px;
+    height: 32px;
+    // background: rgba(255, 0, 0, 0.5);
+
+    display: grid;
+    place-content: center;
+    
+    &:hover {
+      #{$root} {
+        &__connector-target {
+          transform: scale(1.25);
+        }
+      }
+    }
+
+    &-target {
+      width: 0.75rem;
+      height: 0.75rem;
+      border-radius: 2rem;
+      background: white;
+      transition: transform 150ms;
+    }
+  }
+
+  &--output {
+    #{$root} {
+      &__connector {
+        right: 0;
+        transform: translate(50%, -50%);
+      }
+    }
+  }
+
+  &--input {
+    #{$root} {
+      &__connector {
+        left: 0;
+        transform: translate(-50%, -50%);
+      }
+    }
+  }
+}

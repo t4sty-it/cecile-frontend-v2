@@ -11,7 +11,8 @@ import { buildNode } from './lib/commands/node'
 const commands = [
   'uno',
   'due',
-  'tre'
+  'tre',
+  'quattro',
 ]
 
 

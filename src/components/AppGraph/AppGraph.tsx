@@ -42,6 +42,10 @@ export default function AppGraph({
     onMoveNode(node, position)
   }
 
+  const onParamChange = (param: Param) => (value: string) => {
+    console.log(`Param ${param.name} changed to ${value}`)
+  }
+
   return (
     <div className='app-graph' onMouseUp={cancelConnection}>
       <svg className='app-graph__edges'>
@@ -71,7 +75,12 @@ export default function AppGraph({
               <AppParam
                 key={param.id}
                 name={param.name}
+                value={param.value?.toString()}
+                options={param.options}
+                showInput={param.dataType != 'signal'}
                 onMouseUp={() => endConnection(param)}
+                onChange={onParamChange(param)}
+                type='input'
               />
             )}
             
@@ -79,7 +88,9 @@ export default function AppGraph({
               <AppParam
                 key={param.id}
                 name={param.name}
+                showInput={false}
                 onMouseDown={() => startConnection(param)}
+                type='output'
               />
             )}
 

@@ -1,13 +1,23 @@
 .app-node {
   min-width: 300px;
-  padding: 0.5em;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
   background: white;
   color: #333;
   box-shadow: 0 0 2em rgba(0, 0, 0, 0.2);
+
+  &__name {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
 
   &__params {
     &--output {
       text-align: right;
     }
+  }
+
+  > *:not(:empty) {
+    height: 25px;
   }
 }

@@ -4,6 +4,7 @@ import { Point } from "@/data/Point";
 import { uno } from "./implementations/uno";
 import { due } from "./implementations/due";
 import { tre } from "./implementations/tre";
+import { quattro } from "./implementations/quattro";
 
 export type NodeBuilder = (
   nodeType: string,
@@ -36,4 +37,5 @@ const nodeMap: Record<string, NodeParamsBuilder> = {
   'uno': uno,
   'due': due,
   'tre': tre,
+  'quattro': quattro,
 }

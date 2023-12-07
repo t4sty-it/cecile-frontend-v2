@@ -14,7 +14,7 @@ export interface Param {
 }
 
 export interface ParamOption {
-  value: string,
+  value: string | number,
   label: string
 }
 
