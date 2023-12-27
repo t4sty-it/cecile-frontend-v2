@@ -1,5 +1,6 @@
 .app-param {
   $root: &;
+  $cols-width: 5em;
   position: relative;
   display: flex;
   flex-direction: row;
@@ -7,6 +8,25 @@
 
   padding-left: 0.5rem;
   padding-right: 0.5rem;
+
+  &:hover {
+    $hilite: #ccc;
+    background: $hilite;
+    
+    #{$root} {
+      &__connector-target {
+        background: $hilite;
+      }
+    }
+  }
+
+  &__name {
+    width: $cols-width;
+  }
+
+  &__input {
+    width: $cols-width;
+  }
 
   &--output {
     flex-direction: row-reverse;

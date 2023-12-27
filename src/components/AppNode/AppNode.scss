@@ -1,5 +1,5 @@
 .app-node {
-  min-width: 300px;
+  min-width: 220px;
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
   background: white;
@@ -15,9 +15,5 @@
     &--output {
       text-align: right;
     }
-  }
-
-  > *:not(:empty) {
-    height: 25px;
   }
 }
