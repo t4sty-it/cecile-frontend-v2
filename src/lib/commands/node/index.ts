@@ -1,10 +1,11 @@
 import { Node } from "@/data/Node";
-import { Param } from "@/data/Param";
+import { Param, ParamData } from "@/data/Param";
 import { Point } from "@/data/Point";
 import { uno } from "./implementations/uno";
 import { due } from "./implementations/due";
 import { tre } from "./implementations/tre";
 import { quattro } from "./implementations/quattro";
+import { oscillator } from "./implementations/oscillator";
 
 export type NodeBuilder = (
   nodeType: string,
@@ -12,8 +13,6 @@ export type NodeBuilder = (
   nodeOverrides: Partial<Node> & { name: string, position: Point}
   paramOverrides?: Record<string, string>
 }) => [Node, Param[]]
-
-export type NodeParamsBuilder = (parent: Node, overrides: Record<string, string>) => Param[]
 
 export const buildNode: NodeBuilder = (
   nodeType,
@@ -28,14 +27,30 @@ export const buildNode: NodeBuilder = (
     position: nodeOverrides.position
   }
 
-  const params = nodeMap[nodeType](node, paramOverrides)
+  const params = buildParams(node, nodeType, paramOverrides)
 
   return [node, params]
 }
 
-const nodeMap: Record<string, NodeParamsBuilder> = {
-  'uno': uno,
-  'due': due,
-  'tre': tre,
-  'quattro': quattro,
+export type NodeParamsBuilder = (parent: Node, overrides: Record<string, string>) => Param[]
+
+export type ParamDataBuilder = () => ParamData[]
+
+const buildParams: (node: Node, nodeType: string, overrides: Record<string, string>) => Param[]
+= (node, nodeType, overrides) => paramBuilders[nodeType]().map(paramData => ({
+  id: Math.random() + '',
+  parentId: node.id,
+  offset: {x: 0, y: 0},
+  value: overrides[paramData.name],
+  ...paramData
+}))
+
+const paramBuilders: Record<string, ParamDataBuilder> = {
+  uno,
+  due,
+  tre,
+  quattro,
+  oscillator
 }
+
+export const commands = Object.keys(paramBuilders)

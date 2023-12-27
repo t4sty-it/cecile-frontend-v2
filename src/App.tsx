@@ -7,14 +7,7 @@ import { fuzzyFind } from './utils/fuzzyFind'
 import { useGraphData } from './hooks/useGraphData'
 import { useMousePosition } from './hooks/useMousePosition'
 import { buildNode } from './lib/commands/node'
-
-const commands = [
-  'uno',
-  'due',
-  'tre',
-  'quattro',
-]
-
+import { commands } from './lib/commands'
 
 function App() {
   const graph = useGraphData()

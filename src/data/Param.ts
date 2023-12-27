@@ -1,7 +1,15 @@
 import { Point, isPoint } from "./Point"
 
-export interface Param {
-  id: string
+type Id = {id: string}
+type ParentId = {parentId: string}
+type Offset = {offset: Point}
+
+export type ValueSetter = {setValue: (v: number | string) => void}
+export type ValueGetter = { getValue: () => number | string }
+
+export type Param = ParamData & Id & ParentId & Offset
+
+export interface ParamData {
   name: string
   value?: number | string
   type: 'input' | 'output'
@@ -9,8 +17,6 @@ export interface Param {
   options?: ParamOption[]
   min?: number
   max?: number
-  parentId: string
-  offset: Point
 }
 
 export interface ParamOption {
