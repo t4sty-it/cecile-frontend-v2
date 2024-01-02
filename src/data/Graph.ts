@@ -1,4 +1,4 @@
-import { Edge, isEdge } from "./Edge"
+import { Edge } from "./Edge"
 import { Node } from "./Node"
 import { Param } from "./Param"
 import { Point } from "./Point"

@@ -19,6 +19,34 @@ export interface ParamData {
   max?: number
 }
 
+export function isParamData(obj: Object): obj is ParamData {
+  return hasKeyOfType<Param>(obj, 'name', 'string') &&
+    hasKeyOfType<Param>(obj, 'type', 'string') &&
+    hasKeyOfType<Param>(obj, 'dataType', 'string')
+}
+
+export interface NumberParamData extends ParamData {
+  value: number,
+  dataType: 'number'
+}
+
+export function isNumberParamData(obj: Object): obj is NumberParamData {
+  return isParamData(obj) &&
+    obj.dataType == 'number' &&
+    typeof obj.value == 'number'  
+}
+
+export interface StringParamData extends ParamData {
+  value: string,
+  dataType: 'string'
+}
+
+export function isStringParamData(obj: Object): obj is StringParamData {
+  return isParamData(obj) &&
+    obj.dataType == 'string' &&
+    typeof obj.value == 'string'
+}
+
 export interface ParamOption {
   value: string | number,
   label: string

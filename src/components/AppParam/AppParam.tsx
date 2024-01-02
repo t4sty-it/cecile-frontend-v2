@@ -83,7 +83,7 @@ export default function AppParam({
             )
             : (
               <form onSubmit={onInputChange}>
-                <input value={value} name='input'/>
+                <input defaultValue={value} name='input'/>
               </form>
             )
           }

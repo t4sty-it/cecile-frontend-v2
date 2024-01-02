@@ -18,11 +18,13 @@ export default function AppGraph({
   edges,
   onMoveNode,
   onToggleConnection,
+  onUpdateParam,
 }: {
   nodes: Node[],
   params: Param[],
   edges: Edge[],
-  onMoveNode: (n: Node, p: Point) => void,
+  onUpdateParam: (id: string, value: string | number) => void,
+  onMoveNode: (nodeId: string, point: Point) => void,
   onToggleConnection: (src: Param, dst: Param) => void
 }) {
 
@@ -39,11 +41,14 @@ export default function AppGraph({
   const mouse = useMousePosition()
 
   const move = (node: Node, position: Point) => {
-    onMoveNode(node, position)
+    onMoveNode(node.id, position)
   }
 
   const onParamChange = (param: Param) => (value: string) => {
     console.log(`Param ${param.name} changed to ${value}`)
+    if (param.dataType == 'signal') throw 'Trying to update a signal param'
+    const castedValue = param.dataType == 'number' ? parseFloat(value) : value
+    onUpdateParam(param.id, castedValue)
   }
 
   return (

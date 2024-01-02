@@ -1,16 +1,45 @@
 import './App.scss'
 import AppGraph from './components/AppGraph/AppGraph'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import ConsoleInput from './components/ConsoleInput/ConsoleInput'
 import { fuzzyFind } from './utils/fuzzyFind'
 import { useGraphData } from './hooks/useGraphData'
 import { useMousePosition } from './hooks/useMousePosition'
 import { buildNode } from './lib/commands/node'
 import { commands } from './lib/commands'
+import { AudioGraph } from './lib/audio_graph/AudioGraph'
+import { nodes } from './lib/commands/node/nodes'
+import { project } from './lib/record'
+import { Graph } from './data/Graph'
+
+const audioGraph = new AudioGraph(
+  project(nodes, n => n.build)
+)
 
 function App() {
   const graph = useGraphData()
+
+  const [initialized, setInitialized] = useState(false)
+  const initAudioGraph = () => {
+    audioGraph.init()
+    setInitialized(true)
+  }
+
+  useEffect(() => {
+    window.addEventListener('click', initAudioGraph)
+    return () => window.removeEventListener('click', initAudioGraph)
+  }, [])
+
+  useEffect(() => {
+    if (initialized) {
+      audioGraph.reconcile(new Graph(
+        graph.nodes,
+        graph.params,
+        graph.edges,
+      ))
+    }
+  }, [graph.nodes, graph.params, graph.edges])
 
   const mousePosition = useMousePosition()
 
@@ -49,6 +78,7 @@ function App() {
         edges={graph.edges}
         onMoveNode={graph.moveNode}
         onToggleConnection={graph.toggleConnection}
+        onUpdateParam={graph.updateParam}
       />
 
       <ConsoleInput

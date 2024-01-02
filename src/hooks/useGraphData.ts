@@ -22,11 +22,11 @@ export function useGraphData() {
       setEdges(edges => [...edges, {src, dst}])
   }
 
-  const moveNode = (target: Node, point: Point) => {
+  const moveNode = (id: string, point: Point) => {
     setNodes(nodes =>
       nodes.map(node =>
-        node.id === target.id
-          ? {...target, position: point}
+        node.id === id
+          ? {...node, position: point}
           : node))
   }
 
@@ -36,10 +36,20 @@ export function useGraphData() {
     setParams(p => [...p, ...paramsWithFixedOffset])
   }
 
+  const updateParam = (id: string, value: string | number) => {
+    setParams(params => params.map(param => param.id == id
+      ? ({
+        ...param,
+        value
+      })
+      : param  
+    ))
+  }
+
   const _fixParamOffset = (param: Param, idx: number) => ({
     ...param,
     offset: {
-      x: param.type == 'input' ? 0 : 300,
+      x: param.type == 'input' ? 0 : 200,
       y: 8 + (idx + 1) * 25 + 25/2
     }
   }) as Param
@@ -47,6 +57,6 @@ export function useGraphData() {
   return {
     nodes, params, edges,
     toggleConnection, moveNode,
-    addNode
+    addNode, updateParam
   }
 }

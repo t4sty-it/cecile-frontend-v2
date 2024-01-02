@@ -1,13 +1,11 @@
 import { Node } from "@/data/Node";
-import { Param, ParamData } from "@/data/Param";
+import { Param } from "@/data/Param";
 import { Point } from "@/data/Point";
-import { uno } from "./implementations/uno";
-import { due } from "./implementations/due";
-import { tre } from "./implementations/tre";
-import { quattro } from "./implementations/quattro";
-import { oscillator } from "./implementations/oscillator";
 
-export type NodeBuilder = (
+import { nodes } from "./nodes";
+
+
+type NodeBuilder = (
   nodeType: string,
   args: {
   nodeOverrides: Partial<Node> & { name: string, position: Point}
@@ -32,12 +30,8 @@ export const buildNode: NodeBuilder = (
   return [node, params]
 }
 
-export type NodeParamsBuilder = (parent: Node, overrides: Record<string, string>) => Param[]
-
-export type ParamDataBuilder = () => ParamData[]
-
 const buildParams: (node: Node, nodeType: string, overrides: Record<string, string>) => Param[]
-= (node, nodeType, overrides) => paramBuilders[nodeType]().map(paramData => ({
+= (node, nodeType, overrides) => nodes[nodeType].params().map(paramData => ({
   id: Math.random() + '',
   parentId: node.id,
   offset: {x: 0, y: 0},
@@ -45,12 +39,4 @@ const buildParams: (node: Node, nodeType: string, overrides: Record<string, stri
   ...paramData
 }))
 
-const paramBuilders: Record<string, ParamDataBuilder> = {
-  uno,
-  due,
-  tre,
-  quattro,
-  oscillator
-}
-
-export const commands = Object.keys(paramBuilders)
+export const commands = Object.keys(nodes)
