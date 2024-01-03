@@ -4,12 +4,14 @@ import { Point } from '@/data/Point'
 
 export default function AppNode({
   name,
+  label,
   inputParams,
   outputParams,
   style,
   onMove,
 }: {
   name: string,
+  label?: string,
   inputParams?: ReactNode,
   outputParams?: ReactNode,
   style?: CSSProperties,
@@ -52,7 +54,15 @@ export default function AppNode({
 
   return (
     <div ref={ref} className="app-node" style={style} onMouseDown={startDrag}>
-      <div className="app-node__name">{name}</div>
+      <div className="app-node__header">
+        <div className="app-node__name">{name}</div>
+        {label &&
+          <>
+            <div className="app-node__separator">:</div>
+            <div className="app-node__label">{label}</div>
+          </>
+        }
+      </div>
       <div className="app-node__params app-node__params--input">{inputParams}</div>
       <div className="app-node__params app-node__params--output">{outputParams}</div>
     </div>

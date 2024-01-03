@@ -74,7 +74,8 @@ export default function AppGraph({
         {nodes?.map(node => 
           <AppNode
             key={node.id}
-            name={node.name}  
+            name={node.name}
+            label={node.label ?? 'label'}
             
             inputParams={graph.inputParams(node).map(param =>
               <AppParam

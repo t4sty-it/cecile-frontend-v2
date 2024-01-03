@@ -3,6 +3,7 @@ import { Point, isPoint } from "./Point"
 export interface Node {
   id: string
   name: string
+  label?: string
   position: Point
 }
 
