@@ -49,10 +49,10 @@ function App() {
       const tokens = input.split(/\W/)
       const tail = tokens.at(-1) ?? ''
       const head = input.length > tail.length
-        ? input.slice(0, input.length - tail.length - 1)
+        ? input.slice(0, input.length - tail.length)
         : ''
       if (tail.length > 0)
-        setHints(fuzzyFind(tail, commands).map(r => head + ' ' + r))
+        setHints(fuzzyFind(tail, commands).map(r => head + r))
       else setHints([])
     }
     else setHints([])
