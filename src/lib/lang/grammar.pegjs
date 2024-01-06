@@ -1,27 +1,27 @@
-HelpedCommand
-= cmd:(MetaCommand / Command) _ help:"?"? {
-	if (help) {
-    	return {
-        	action: "help",
-            target: cmd
-        }
-    }
-    else return cmd
-}
+// HelpedCommand
+// = cmd:(MetaCommand / Command) _ help:"?"? {
+// 	if (help) {
+//     	return {
+//         	action: "help",
+//             target: cmd
+//         }
+//     }
+//     else return cmd
+// }
 
-MetaCommand
-= "#" _ cmd:([^? ]*) args:([ ]+ MetaArg+)* {
-	return [{
-    	action: "meta",
-        target: cmd.reduce((a, x) => a + x),
-        args: args.flatMap(x => x[1])
-    }]
-}
+// MetaCommand
+// = "#" _ cmd:([^? ]*) args:([ ]+ MetaArg+)* {
+// 	return [{
+//     	action: "meta",
+//         target: cmd.reduce((a, x) => a + x),
+//         args: args.flatMap(x => x[1])
+//     }]
+// }
 
-MetaArg
-= [^ \n\r?]+ {
-	return text()
-}
+// MetaArg
+// = [^ \n\r?]+ {
+// 	return text()
+// }
 
 Command
 = head:ParameterizedTerm tail:(_ TargetedConnector _ Command _)* {
@@ -32,8 +32,8 @@ TargetedConnector
   = outlet:Outlet? _ c:Connector _ inlet:Inlet? {
   	return {
     	...c,
-        ...inlet,
-        ...outlet
+      ...inlet,
+      ...outlet
     }
   }
 

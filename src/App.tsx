@@ -5,8 +5,6 @@ import { useEffect, useState } from 'react'
 import ConsoleInput from './components/ConsoleInput/ConsoleInput'
 import { fuzzyFind } from './utils/fuzzyFind'
 import { useGraphData } from './hooks/useGraphData'
-import { useMousePosition } from './hooks/useMousePosition'
-import { buildNode } from './lib/commands/node'
 import { commands } from './lib/commands'
 import { AudioGraph } from './lib/audio_graph/AudioGraph'
 import { nodes } from './lib/commands/node/nodes'
@@ -41,32 +39,22 @@ function App() {
     }
   }, [graph.nodes, graph.params, graph.edges])
 
-  const mousePosition = useMousePosition()
-
   const onCommand = (cmd: string) => {
-    const actualCmd = fuzzyFind(cmd, commands)[0]
-    if (actualCmd == null) throw 'Command not found'
-    execCommand(actualCmd)
-  }
-
-  const execCommand = (cmd: string) => {
-    const [node, params] = buildNode(
-      cmd,
-      {
-        nodeOverrides: {
-          name: cmd,
-          position: mousePosition
-        }
-      }
-    )
-
-    graph.addNode(node, params)
+    graph.execCommand(cmd)
   }
   
   const [hints, setHints] = useState<string[]>([])
   const onInput = (input: string) => {
-    if (input.length > 0)
-      setHints(fuzzyFind(input, commands))
+    if (input.length > 0) {
+      const tokens = input.split(/\W/)
+      const tail = tokens.at(-1) ?? ''
+      const head = input.length > tail.length
+        ? input.slice(0, input.length - tail.length - 1)
+        : ''
+      if (tail.length > 0)
+        setHints(fuzzyFind(tail, commands).map(r => head + ' ' + r))
+      else setHints([])
+    }
     else setHints([])
   }
 

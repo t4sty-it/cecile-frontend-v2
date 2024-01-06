@@ -4,7 +4,7 @@ import { Node } from "../node";
 export const out: Node = {
   params: () => [
     {
-      name: 'signal',
+      name: 'input',
       type: 'input',
       dataType: 'signal'
     }
@@ -20,7 +20,7 @@ class Out extends CustomAudioNode {
     this.connect(actx.destination)
 
     this.params = {
-      signal: this
+      input: this
     }
   }
 }

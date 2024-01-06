@@ -8,7 +8,6 @@ import AppParam from '@/components/AppParam/AppParam'
 import { Param } from '@/data/Param'
 import { Graph } from '@/data/Graph'
 import { Point } from '@/data/Point'
-import { useCallback, useState } from 'react'
 import { useMousePosition } from '@/hooks/useMousePosition'
 import { useConnectionEvents } from './useConnectionEvents'
 
@@ -75,7 +74,7 @@ export default function AppGraph({
           <AppNode
             key={node.id}
             name={node.name}
-            label={node.label ?? 'label'}
+            label={node.label}
             
             inputParams={graph.inputParams(node).map(param =>
               <AppParam

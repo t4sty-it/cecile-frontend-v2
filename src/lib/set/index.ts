@@ -1,10 +1,10 @@
 export type Set<T> = Record<string, SetEntry<T>>
 
-type SetEntry<T> = {id: string, value: T}
+type SetEntry<T> = {id: string, _value: T}
 function entryOf<T>(obj: T, id: string): SetEntry<T> {
   return {
     id,
-    value: obj
+    _value: obj
   }
 } 
 
@@ -40,11 +40,11 @@ export function intersect<T>(a: Set<T>, b: Set<T>): Set<T> {
 }
 
 export function valuesOf<T>(set: Set<T>): T[] {
-  return Object.values(set).map(entry => entry.value)
+  return Object.values(set).map(entry => entry._value)
 }
 
 export function valueOf<T>(set: Set<T>, id: string): T | null {
-  return set[id]?.value
+  return set[id]?._value
 }
 
 export function outerJoin<X, Y>(a: Set<X>, b: Set<Y>): Set<[X|null, Y|null]> {
@@ -71,7 +71,7 @@ export function outerJoin<X, Y>(a: Set<X>, b: Set<Y>): Set<[X|null, Y|null]> {
 export function innerJoin<X, Y>(a: Set<X>, b: Set<Y>): Set<[X, Y]> {
   return Object.fromEntries(
     Object.entries(outerJoin(a, b))
-      .filter(([_, {value}]) => value[0] != null && value[1] != null)
+      .filter(([_, {_value: value}]) => value[0] != null && value[1] != null)
       .map(e => e as [String, SetEntry<[X, Y]>])
   )
 }
@@ -84,24 +84,24 @@ export function select<X, Y>(a: Set<X>, b: Set<Y>): Set<X> {
   )
 }
 
-export function map<T>(set: Set<T>, mapFunction: (item: T, idx: number, items: T[]) => T) {
+export function map<T1, T2>(set: Set<T1>, mapFunction: (item: T1, idx: number, items: T1[]) => T2) {
   const setValues = valuesOf(set)
   return Object.fromEntries(
     Object.entries(set)
       .map(([id, entryValue], idx) =>
-        [id, mapFunction(entryValue.value, idx, setValues)])
+        [id, mapFunction(entryValue._value, idx, setValues)])
   )
 }
 
 export function filter<T>(
   set: Set<T>,
   filterFunction: (item: T, idx: number, items: T[]) => boolean
-) {
+): Set<T> {
   const setValues = valuesOf(set)
   return Object.fromEntries(
     Object.entries(set)
       .filter(([_, entryValue], idx) =>
-        filterFunction(entryValue.value, idx, setValues))
+        filterFunction(entryValue._value, idx, setValues))
   )
 }
 

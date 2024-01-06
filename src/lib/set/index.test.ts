@@ -9,6 +9,7 @@ const stringId = (x: number) => '' + x
 
 test('setOf', () => {
   expect(valuesOf(setOf([1,2,3], stringId))).toEqual([1,2,3])
+  expect(valuesOf(setOf([], stringId))).toEqual([])
 })
 
 test('valueOf', () => {
