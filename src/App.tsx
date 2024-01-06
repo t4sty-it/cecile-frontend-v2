@@ -65,6 +65,7 @@ function App() {
         params={graph.params}
         edges={graph.edges}
         onMoveNode={graph.moveNode}
+        onDeleteNode={graph.removeNode}
         onToggleConnection={graph.toggleConnection}
         onUpdateParam={graph.updateParam}
       />

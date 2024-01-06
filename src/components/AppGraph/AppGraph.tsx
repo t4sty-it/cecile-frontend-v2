@@ -16,6 +16,7 @@ export default function AppGraph({
   params,
   edges,
   onMoveNode,
+  onDeleteNode,
   onToggleConnection,
   onUpdateParam,
 }: {
@@ -24,7 +25,8 @@ export default function AppGraph({
   edges: Edge[],
   onUpdateParam: (id: string, value: string | number) => void,
   onMoveNode: (nodeId: string, point: Point) => void,
-  onToggleConnection: (src: Param, dst: Param) => void
+  onDeleteNode: (nodeId: string) => void,
+  onToggleConnection: (src: Param, dst: Param) => void,
 }) {
 
   const graph = new Graph(nodes, params, edges)
@@ -100,6 +102,8 @@ export default function AppGraph({
             )}
 
             onMove={(point: Point) => move(node, point)}
+
+            onDelete={() => onDeleteNode(node.id)}
             
             style={{
               left: node.position.x,

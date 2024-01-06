@@ -1,4 +1,5 @@
 .app-node {
+  $root: &;
   min-width: 220px;
   padding-top: 0.5rem;
   background: white;
@@ -20,6 +21,28 @@
   &__params {
     &--output {
       text-align: right;
+    }
+  }
+
+  &__actions {
+    opacity: 0;
+    transition: opacity 200ms;
+  }
+
+  &:hover {
+    #{$root}__actions {
+      opacity: 1;
+    }
+  }
+
+  &-action {
+    background: transparent;
+    border: none;
+    filter: brightness(0);
+    transition: transform 200ms;
+
+    &:hover {
+      transform: scale(1.1);
     }
   }
 }

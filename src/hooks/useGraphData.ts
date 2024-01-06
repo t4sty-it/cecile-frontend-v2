@@ -43,6 +43,12 @@ export function useGraphData() {
     setParams(p => [...p, ...paramsWithFixedOffset])
   }
 
+  const removeNode = (id: string) => {
+    setNodes(nodes => nodes.filter(node => node.id != id))
+    setParams(params => params.filter(param => param.parentId != id))
+    setEdges(edges => edges.filter(edge => edge.src.parentId != id && edge.dst.parentId != id))
+  }
+
   const updateParam = (id: string, value: string | number) => {
     setParams(params => params.map(param => param.id == id
       ? ({
@@ -105,7 +111,7 @@ export function useGraphData() {
   return {
     nodes, params, edges,
     toggleConnection, moveNode,
-    addNode, updateParam,
+    addNode, removeNode, updateParam,
     execCommand,
   }
 }

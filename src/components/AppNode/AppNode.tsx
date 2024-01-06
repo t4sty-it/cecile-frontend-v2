@@ -9,13 +9,15 @@ export default function AppNode({
   outputParams,
   style,
   onMove,
+  onDelete,
 }: {
   name: string,
   label?: string,
   inputParams?: ReactNode,
   outputParams?: ReactNode,
   style?: CSSProperties,
-  onMove?: (p: Point) => void
+  onMove?: (p: Point) => void,
+  onDelete?: () => void,
 }) {
 
   const ref = useRef<HTMLDivElement>(null)
@@ -62,6 +64,9 @@ export default function AppNode({
             <div className="app-node__label">{label}</div>
           </>
         }
+        <div className="app-node__actions">
+          <button className='app-node-action icon-button' onClick={onDelete}>🗑</button>
+        </div>
       </div>
       <div className="app-node__params app-node__params--input">{inputParams}</div>
       <div className="app-node__params app-node__params--output">{outputParams}</div>
