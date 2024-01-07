@@ -1,7 +1,7 @@
 import './App.scss'
 import AppGraph from './components/AppGraph/AppGraph'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import ConsoleInput from './components/ConsoleInput/ConsoleInput'
 import { fuzzyFind } from './utils/fuzzyFind'
 import { useGraphData } from './hooks/useGraphData'
@@ -10,12 +10,19 @@ import { AudioGraph } from './lib/audio_graph/AudioGraph'
 import { nodes } from './lib/commands/node/nodes'
 import { project } from './lib/record'
 import { Graph } from './data/Graph'
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 
 const audioGraph = new AudioGraph(
   project(nodes, n => n.build)
 )
 
 function App() {
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useKeyboardShortcuts([
+    [['Space'], _ => inputRef.current?.focus()]
+  ])
+
   const graph = useGraphData()
 
   const [initialized, setInitialized] = useState(false)
@@ -71,6 +78,7 @@ function App() {
       />
 
       <ConsoleInput
+        ref={inputRef}
         onCommand={onCommand}
         onInput={onInput}
         hints={hints}

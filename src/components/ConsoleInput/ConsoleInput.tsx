@@ -1,16 +1,22 @@
 import { AppSelect } from '../AppSelect/AppSelect'
 import './ConsoleInput.scss'
-import { FormEventHandler, KeyboardEventHandler, useEffect, useRef, useState } from "react"
+import { FormEventHandler, KeyboardEventHandler, forwardRef, useEffect, useRef, useState } from "react"
 
-export default function ConsoleInput({
-  hints,
-  onInput,
-  onCommand,
-}: {
+interface ConsoleInputProps {
   hints?: string[],
   onInput?: (input: string) => void,
   onCommand?: (cmd: string) => void,
-}) {
+}
+
+
+const ConsoleInput = forwardRef<HTMLInputElement, ConsoleInputProps>(function(
+  {
+    hints,
+    onInput,
+    onCommand,
+  }: ConsoleInputProps,
+  ref
+) {
 
   const [command, setCommand] = useState<string>('')
   const [hintSelected, setHintSelected] = useState(-1)
@@ -23,6 +29,7 @@ export default function ConsoleInput({
   }
 
   const onKeyDown: KeyboardEventHandler = e => {
+    e.stopPropagation()
     if (hints) {
       if (['ArrowUp', 'ArrowDown', 'Tab'].includes(e.code))
         e.preventDefault()
@@ -50,6 +57,7 @@ export default function ConsoleInput({
       className="console-input"
     >
       <input
+        ref={ref}
         name="command"
         value={command}
         onInput={e => setCommand((e.target as any).value)}
@@ -66,4 +74,6 @@ export default function ConsoleInput({
       }
     </form>
   )
-}
+})
+
+export default ConsoleInput
