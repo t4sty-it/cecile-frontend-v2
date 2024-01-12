@@ -1,0 +1,13 @@
+@import '../../style/colors.scss';
+
+.splash-page {
+  display: grid;
+  place-content: center;
+
+  background-color: $optimistic-blue;
+
+  &__title {
+    font-size: 5em;
+    color: white;
+  }
+}

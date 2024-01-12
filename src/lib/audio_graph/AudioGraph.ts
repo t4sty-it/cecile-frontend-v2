@@ -7,7 +7,7 @@ import { Edge } from "@/data/Edge"
 import { AudioValue, CustomAudioNode } from "../commands/node/custom"
 
 
-type NodeBuilderFunc = (actx: AudioContext) => CustomAudioNode
+export type NodeBuilderFunc = (actx: AudioContext) => CustomAudioNode
 const edgeId = (edge: Edge) => `${edge.src.id}:${edge.dst.id}`
 
 type AudioParamValue = AudioNode | AudioParam | AudioValue
