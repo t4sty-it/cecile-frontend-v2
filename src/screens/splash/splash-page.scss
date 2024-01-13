@@ -1,13 +1,33 @@
 @import '../../style/colors.scss';
 
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
 .splash-page {
   display: grid;
   place-content: center;
 
   background-color: $optimistic-blue;
 
+  a {
+    color: inherit;
+    text-decoration: inherit;
+  }
+
   &__title {
-    font-size: 5em;
+    font-size: 10em;
     color: white;
+  }
+
+
+  &__cta {
+    opacity: 0;
+    animation: fadeIn 3s;
+    animation-delay: 1s;
+    animation-fill-mode: forwards;
+    font-size: 4em;
+    text-align: center;
   }
 }

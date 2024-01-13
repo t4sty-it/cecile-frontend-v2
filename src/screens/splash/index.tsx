@@ -7,6 +7,7 @@ export default function SplashPage() {
     <div className="page splash-page">
       <NavLink to='/graph'>
         <h1 className="splash-page__title">Cecile 2.0</h1>
+        <div className='splash-page__cta'>Click to start</div>
       </NavLink>
     </div>
   )
