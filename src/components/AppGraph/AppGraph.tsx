@@ -85,6 +85,7 @@ export default function AppGraph({
                 value={param.value?.toString()}
                 options={param.options}
                 showInput={param.dataType != 'signal'}
+                connectable={param.type == 'input' && param.dataType != 'string'}
                 onMouseUp={() => endConnection(param)}
                 onChange={onParamChange(param)}
                 type='input'

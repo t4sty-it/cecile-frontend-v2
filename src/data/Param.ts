@@ -12,7 +12,7 @@ export type Param = ParamData & Id & ParentId & Offset
 export interface ParamData {
   name: string
   value?: number | string
-  type: 'input' | 'output'
+  type: 'input' | 'output' | 'param'
   dataType: 'number' | 'string' | 'signal'
   options?: ParamOption[]
   min?: number

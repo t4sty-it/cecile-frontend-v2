@@ -7,6 +7,7 @@ export default function AppParam({
   value,
   type,
   showInput = false,
+  connectable = true,
   options,
   onMouseUp,
   onMouseDown,
@@ -15,6 +16,7 @@ export default function AppParam({
   name?: string,
   value?: string,
   showInput?: boolean,
+  connectable?: boolean,
   options?: {label: string, value: string|number}[]
   onMouseUp?: MouseEventHandler,
   onMouseDown?: MouseEventHandler,
@@ -60,12 +62,16 @@ export default function AppParam({
 
   return ( 
     <div className={className}>
-      <div className="app-param__connector"
-        onMouseDownCapture={mouseDown}
-        onMouseUpCapture={mouseUp}
-      >
-        <div className="app-param__connector-target"></div>
-      </div>
+
+      {connectable &&
+        <div className="app-param__connector"
+          onMouseDownCapture={mouseDown}
+          onMouseUpCapture={mouseUp}
+        >
+          <div className="app-param__connector-target"></div>
+        </div>
+
+      }
       
       <div className="app-param__name">{name}</div>
       

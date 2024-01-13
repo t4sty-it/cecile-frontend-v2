@@ -22,7 +22,7 @@ export class Graph {
   public inputParams(node: Node): Param[] {
     return this.params.filter(p =>
       this.parentNode(p).id === node.id &&
-      p.type === 'input'
+      (p.type === 'input' || p.type === 'param')
     ) ?? []
   }
   
