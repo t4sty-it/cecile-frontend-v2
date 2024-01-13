@@ -1,6 +1,15 @@
 .console-input {
   input {
     width: 100%;
+
+    opacity: 0.8;
+    transition: opacity 200ms ease-out;
+  }
+
+  &--focused {
+    input {
+      opacity: 1;
+    }
   }
 
   &__hints {

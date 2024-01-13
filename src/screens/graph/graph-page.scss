@@ -3,8 +3,9 @@
 
   .console-input {
     position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
+    bottom: 1em;
+    left: 50%;
+    width: 80%;
+    transform: translateX(-50%);
   }
 }

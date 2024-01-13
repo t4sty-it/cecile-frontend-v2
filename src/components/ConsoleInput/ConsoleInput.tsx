@@ -1,6 +1,7 @@
 import { AppSelect } from '../AppSelect/AppSelect'
 import './ConsoleInput.scss'
 import { FormEventHandler, KeyboardEventHandler, forwardRef, useEffect, useRef, useState } from "react"
+import { cssClasses } from '@/utils/cssClasses'
 
 interface ConsoleInputProps {
   hints?: string[],
@@ -21,6 +22,8 @@ const ConsoleInput = forwardRef<HTMLInputElement, ConsoleInputProps>(function(
   const [command, setCommand] = useState<string>('')
   const [hintSelected, setHintSelected] = useState(-1)
 
+  const [focused, setFocused] = useState<boolean>(false)
+
   const onSubmit: FormEventHandler<HTMLFormElement> = e => {
     e.preventDefault()
     e.stopPropagation()
@@ -37,7 +40,7 @@ const ConsoleInput = forwardRef<HTMLInputElement, ConsoleInputProps>(function(
       switch(e.code){
         case 'ArrowUp': setHintSelected(h => (h+1) % hints.length); break
         case 'ArrowDown': setHintSelected(h => (h - 1 + hints.length) % hints!.length); break
-        case 'Tab': setCommand(hints[hintSelected]); break
+        case 'Tab': setCommand(hints[hintSelected] ?? ''); break
       }
     }
   }
@@ -50,11 +53,15 @@ const ConsoleInput = forwardRef<HTMLInputElement, ConsoleInputProps>(function(
     setHintSelected(0)
   }, [hints])
 
+  const className = cssClasses([
+    'console-input',
+    focused && 'console-input--focused'
+  ])
   return (
     <form
       autoComplete='off'
       onSubmit={onSubmit}
-      className="console-input"
+      className={className}
     >
       <input
         ref={ref}
@@ -62,6 +69,8 @@ const ConsoleInput = forwardRef<HTMLInputElement, ConsoleInputProps>(function(
         value={command}
         onInput={e => setCommand((e.target as any).value)}
         onKeyDown={onKeyDown}
+        onFocus={_ => setFocused(true)}
+        onBlur={_ => setFocused(false)}
       />
 
       {hints &&
