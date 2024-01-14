@@ -1,11 +1,25 @@
 .graph-page {
   height: 100vh;
+  position: relative;
+
+  &__header {
+    text-align: center;
+    color: white;
+    position: absolute;
+    top: .5em;
+    left: 0;
+    width: 100%;
+    text-align: center;
+
+    font-weight: 500;
+  }
 
   .console-input {
     position: absolute;
     bottom: 1em;
     left: 50%;
     width: 80%;
+    max-width: 22cm;
     transform: translateX(-50%);
   }
 }

@@ -54,6 +54,7 @@ export default function GraphPage() {
 
   return (
     <div className="page graph-page">
+
       <AppGraph
         nodes={graph.nodes}
         params={graph.params}
@@ -63,6 +64,10 @@ export default function GraphPage() {
         onToggleConnection={graph.toggleConnection}
         onUpdateParam={graph.updateParam}
       />
+
+      <div className="graph-page__header">
+        Cécile 2.0
+      </div>
 
       <ConsoleInput
         ref={inputRef}
