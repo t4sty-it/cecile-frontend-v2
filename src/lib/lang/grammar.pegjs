@@ -86,7 +86,9 @@ ParamExp "param exponential"
   }
 
 ParamFactor "param factor"
-  = ("(" _ ParamExpression _ ")") / ParamValue
+  = exp:("(" _ ParamExpression _ ")") {
+  	return exp.flat().filter(Boolean).join('')
+  } / ParamValue
 
 ParamValue
   = Float / Integer / "n" / "z" / "r"
