@@ -1,5 +1,5 @@
 export class NoiseProcessor extends AudioWorkletProcessor {
-  process(inputs: Float32Array[][], outputs: Float32Array[][], parameters: Record<string, Float32Array>): boolean {
+  process(_inputs: Float32Array[][], outputs: Float32Array[][], _parameters: Record<string, Float32Array>): boolean {
     const output = outputs[0];
     output.forEach((channel) => {
       for (let i = 0; i < channel.length; i++) {

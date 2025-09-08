@@ -97,25 +97,26 @@ export class AudioGraph {
 
   private updateParam(ap: Box<AudioParamValue>, param: Param) {
     if (param.value == null) return
-    const audioParamValue = unbox(ap)
+    const audioParam = unbox(ap)
 
     if (isNumberParamData(param)) {
-      if (audioParamValue instanceof AudioParam) {
-        if (Math.abs(audioParamValue.value - param.value) > 0.00001) {
+      if (audioParam instanceof AudioParam) {
+        // not sure why I put this here, I'll keep the comment in case I find out again
+        // if (Math.abs(audioParam.value - param.value) > 0.00001) {
           console.log('updating audio param value to', param.value)
-          // audioParamValue.setValueAtTime(param.value, this.actx!.currentTime)
-          audioParamValue.value = param.value
-        }
+          audioParam.setValueAtTime(param.value, this.actx!.currentTime)
+          // audioParam.value = param.value
+        // }
       }
       else throw 'Cannot set number value of non-audioparam'
     }
     if (isStringParamData(param)) {
-      if (audioParamValue instanceof AudioParam)
+      if (audioParam instanceof AudioParam)
         throw 'Trying to set value of an audio param to a string'
-      if (audioParamValue instanceof AudioNode)
+      if (audioParam instanceof AudioNode)
         throw 'Trying to set value of an audio node to a string'
-      if (audioParamValue.value != param.value) {
-        audioParamValue.value = param.value
+      if (audioParam.value != param.value) {
+        audioParam.value = param.value
         console.log('Update string param to', param.value)
       }
     }
@@ -160,7 +161,12 @@ export class AudioGraph {
         audioSrc.value.connect(audioDst.value as AudioNode /* ts-stfu */)
         console.log(`connect ${audioSrc.id}:${audioDst.id}`)
       }
-      else throw 'Edge destination is not an audionode or audio param'
+      else {
+        console.error('Edge destination not and audio node or audio param', {
+          audioSrc, audioDst
+        })
+        throw 'Edge destination is not an audionode or audio param'
+      }
 
       return boxOf({src: audioSrc.value, dst: audioDst.value}, `${src.id}:${dst.id}`)
     })
