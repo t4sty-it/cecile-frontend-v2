@@ -7,6 +7,7 @@ export async function createWorkletNode(
   try {
     return new AudioWorkletNode(context, name);
   } catch (err) {
+    console.warn('adding module ' + name + ' to audio worklet')
     await context.audioWorklet.addModule(url);
     return new AudioWorkletNode(context, name);
   }
