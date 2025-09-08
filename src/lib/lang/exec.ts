@@ -131,27 +131,31 @@ export function execCreate(
   ]
 
 
-  const toValuedParams: (n: [Node, Param[]]) => [Node, Param[]] = 
-  ([node, params]) => [
+  const toValuedParams: (n: [Node, Param[]], idx: number) => [Node, Param[]] = 
+  ([node, params], idx) => [
     node,
     cmd.params
-      ? params.map(param => _toValuedParam(reverseFuzzyFilter(cmd.params!, param.name, p => p.name), param))
+      ? params.map((param) => _toValuedParam(reverseFuzzyFilter(cmd.params!, param.name, p => p.name), param, idx))
       : params
   ]
 
-  const _toValuedParam: (cmdParam: {name: string, value: string | number} | undefined, param: Param) => Param =
-  (cmdParam, param) => ({
+  const _toValuedParam: (cmdParam: {name: string, value: string | number} | undefined, param: Param, idx: number) => Param =
+  (cmdParam, param, idx) => ({
     ...param,
     value: cmdParam
       ? param.options
         ? fuzzyFilter(
-            eval(cmdParam.value + ''),
+            evalWithContext(cmdParam.value + '', {idx: idx}),
             param.options,
             o => o.value + ''
           )[0]?.value
-        : eval(cmdParam.value + '')
+        : evalWithContext(cmdParam.value + '', {idx: idx})
       : param.value
   })
+
+  const evalWithContext = (s: string, ctx: {idx: number}) =>
+    eval(`(() => { const z = ${ctx.idx}; const n = ${ctx.idx+1}; const r = ${Math.random()}; return (${s})})()`)
+  
 
   return [...Array(cmd.quantity ?? 1).keys()]
     .map(_ => nodeBuilders[nodeName]())
