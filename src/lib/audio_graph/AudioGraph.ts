@@ -101,12 +101,13 @@ export class AudioGraph {
 
     if (isNumberParamData(param)) {
       if (audioParam instanceof AudioParam) {
-        // not sure why I put this here, I'll keep the comment in case I find out again
-        // if (Math.abs(audioParam.value - param.value) > 0.00001) {
+        
+        // prevent useless updates when moving nodes around
+        if (Math.abs(audioParam.value - param.value) > 0.00001) {
           console.log('updating audio param value to', param.value)
           audioParam.setValueAtTime(param.value, this.actx!.currentTime)
           // audioParam.value = param.value
-        // }
+        }
       }
       else throw 'Cannot set number value of non-audioparam'
     }
