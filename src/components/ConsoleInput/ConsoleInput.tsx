@@ -53,10 +53,10 @@ const ConsoleInput = forwardRef<HTMLInputElement, ConsoleInputProps>(function(
     setHintSelected(0)
   }, [hints])
 
-  const className = cssClasses([
+  const className = cssClasses(
     'console-input',
     focused && 'console-input--focused'
-  ])
+  )
   return (
     <form
       autoComplete='off'

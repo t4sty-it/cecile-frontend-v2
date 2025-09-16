@@ -30,10 +30,10 @@ export function AppOption({
   selected: boolean
 }) {
 
-  const className = cssClasses([
+  const className = cssClasses(
     'app-option',
     selected && 'app-option--selected'
-  ])
+  )
 
   return (
     <option value={value} className={className}>{value}</option>

@@ -24,10 +24,10 @@ export default function AppParam({
   type?: 'input' | 'output'
 }) {
 
-  const className = cssClasses([
+  const className = cssClasses(
     'app-param',
     `app-param--${type}`
-  ])
+  )
 
   const mouseDown: MouseEventHandler = e => {
     e.preventDefault()
