@@ -1,6 +1,6 @@
 import { AppSelect } from '../AppSelect/AppSelect'
 import './ConsoleInput.scss'
-import { FormEventHandler, KeyboardEventHandler, forwardRef, useEffect, useRef, useState } from "react"
+import { FormEventHandler, KeyboardEventHandler, forwardRef, useEffect, useState } from "react"
 import { cssClasses } from '@/utils/cssClasses'
 
 interface ConsoleInputProps {

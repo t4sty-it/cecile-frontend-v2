@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 
 type Char = 'q'|'w'|'e'|'r'|'t'|'y'|'u'|'i'|'o'|'p'|'a'|'s'|'d'|'f'|'g'|'h'|'j'|'k'|'l'|'z'|'x'|'c'|'v'|'b'|'n'|'m'
 
@@ -9,10 +9,9 @@ type Modifiers = {
   'Meta': boolean,
   'Space': boolean,
 }
-// type Modifier = 'Control' | 'Alt' | 'Shift' | 'Meta' | 'Space'
+
 type Modifier = keyof Modifiers
 export type Shortcut = (Modifier | Char)[]
-// export type Shortcuts = Record<Shortcut, (e: KeyboardEvent) => void>
 
 type ShortcutAction = (e: KeyboardEvent) => void
 
