@@ -59,7 +59,7 @@ export default function GraphPage() {
         nodes={graph.nodes}
         params={graph.params}
         edges={graph.edges}
-        onMoveNode={graph.moveNode}
+        onMoveNodes={graph.moveNodes}
         onDeleteNode={graph.removeNode}
         onToggleConnection={graph.toggleConnection}
         onUpdateParam={graph.updateParam}

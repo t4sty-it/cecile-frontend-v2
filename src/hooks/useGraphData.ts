@@ -1,7 +1,7 @@
 import { Edge } from "@/data/Edge";
 import { Node } from "@/data/Node";
 import { Param } from "@/data/Param";
-import { Point } from "@/data/Point";
+import { add, Point } from "@/data/Point";
 import { graphOf, union, valuesOf } from "@/lib/graph";
 import { exec } from "@/lib/lang";
 import { useState } from "react";
@@ -35,6 +35,17 @@ export function useGraphData() {
         node.id === id
           ? {...node, position: point}
           : node))
+  }
+
+  const moveNodes = (ids: string[], delta: Point) => {
+    console.log('move nodes', ids, delta)
+    setNodes(nodes =>
+      nodes.map(node =>
+        ids.includes(node.id)
+          ? {...node, position: add(node.position, delta)}
+          : node 
+      )
+    )
   }
 
   const addNode = (node: Node, params: Param[]) => {
@@ -110,7 +121,7 @@ export function useGraphData() {
 
   return {
     nodes, params, edges,
-    toggleConnection, moveNode,
+    toggleConnection, moveNode, moveNodes,
     addNode, removeNode, updateParam,
     execCommand,
   }

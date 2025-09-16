@@ -5,6 +5,12 @@
   background: white;
   color: #555;
   box-shadow: 0 0 2em rgba(0, 0, 0, 0.2);
+  border-radius: 2px;
+  user-select: none;
+
+  &--selected {
+    outline: 2px solid #f80;
+  }
 
   &__header {
     padding-left: 0.5rem;

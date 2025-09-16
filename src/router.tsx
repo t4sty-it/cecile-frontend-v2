@@ -3,6 +3,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import App from './App.tsx'
 import SplashPage from './screens/splash/index.tsx';
 import GraphPage from './screens/graph/index.tsx';
+import { SelectionProvider } from './contexts/SelectionContext.tsx';
 
 export const router = createBrowserRouter([
   {
@@ -17,7 +18,10 @@ export const router = createBrowserRouter([
 
       {
         path: 'graph',
-        element: <GraphPage/>
+        element: 
+          <SelectionProvider>
+            <GraphPage/>
+          </SelectionProvider>
       }
     ]
   },
