@@ -1,11 +1,11 @@
-import { parse } from "./parser";
 import { Node } from "@/data/Node";
 import { Param } from "@/data/Param";
-import { fuzzyFilter, fuzzyFind, reverseFuzzyFilter, reverseFuzzyFind } from "@/utils/fuzzyFind";
-import * as g from '../graph'
-import * as s from '../set'
+import * as p from '@/data/Point';
 import { Point } from "@/data/Point";
-import * as p from '@/data/Point'
+import { fuzzyFilter, fuzzyFind, reverseFuzzyFilter } from "@/utils/fuzzyFind";
+import * as g from '../graph';
+import * as s from '../set';
+import { parse } from "./parser";
 
 type BaseTerm = {
     node: string,

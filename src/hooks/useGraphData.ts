@@ -38,7 +38,6 @@ export function useGraphData() {
   }
 
   const moveNodes = (ids: string[], delta: Point) => {
-    console.log('move nodes', ids, delta)
     setNodes(nodes =>
       nodes.map(node =>
         ids.includes(node.id)
