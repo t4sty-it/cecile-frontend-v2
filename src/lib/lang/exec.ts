@@ -5,7 +5,7 @@ import { Point } from "@/data/Point";
 import { fuzzyFilter, fuzzyFind, reverseFuzzyFilter } from "@/utils/fuzzyFind";
 import * as g from '../graph';
 import * as s from '../set';
-import { parse } from "./parser";
+import { /* HelpedCommand, */ MetaCommand, parse } from "./parser";
 
 type BaseTerm = {
     node: string,
@@ -29,17 +29,15 @@ type Connector = {
   outlet?: string,
 }
 
-function isCreator(x: Object): x is Creator {
-  return Object.keys(x).includes('action') && (x as {action: any}).action === 'create'
-}
+const id = <T>(action: string) => (x: any): x is T => 
+  Object.keys(x).includes('action') && (x as {action: any}).action === action
 
-function isSelector(x: Object): x is Selector {
-  return Object.keys(x).includes('action') && (x as {action: any}).action === 'select'
-}
+// const isHelpedCommand = id<HelpedCommand>('help') // not implemented for now
+const isMetaCommand = id<MetaCommand>('meta')
+const isCreator = id<Creator>('create')
+const isSelector = id<Selector>('select')
+const isConnector = id<Connector>('connect')
 
-function isConnector(x: Object): x is Connector {
-  return Object.keys(x).includes('action') && (x as {action: any}).action === 'connect'
-}
 
 type Term = Creator | Selector
 type Graph = g.Graph<Node, Param>
@@ -48,12 +46,20 @@ export function exec(
   command: string,
   graph: Graph,
   nodeBuilders: Record<string, () => [Node, Param[]]>,
-  origin: Point
-): Graph {
+  origin: Point,
+  metaCommands: Record<string, (...args: string[]) => void>
+): Graph | null {
 
   // SELECT -> CREATE -> CONNECT
+  const parsed = parse(command)
+  
+  if (isMetaCommand(parsed)) {
+    execMeta(metaCommands, parsed)
+    return null
+  }
 
-  const parsedTerms = parse(command) as (Term | Connector)[]
+
+  const parsedTerms = parsed as (Term | Connector)[]
   
   return parsedTerms
     .map(cmd => isSelector(cmd)
@@ -76,6 +82,14 @@ export function exec(
       ? (execConnect(arr[idx - 1] as Graph, cmd, arr[idx + 1] as Graph))
       : cmd)
     .reduce((acc, cur) => g.union(acc, cur))
+}
+
+export function execMeta(metaCommands: Record<string, (...args: string[]) => void>, metaCommand: MetaCommand ) {
+  const {target, args } = metaCommand
+  if (target in metaCommands) {
+    metaCommands[target](...args)
+  }
+  else console.error('command not found: ' + target)
 }
 
 export function execSelect

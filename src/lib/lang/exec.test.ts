@@ -93,9 +93,9 @@ test('exec', () => {
     
     []
   )
-  const result = exec('$x = $y', graph, {}, {x: 0, y: 0})
+  const result = exec('$x = $y', graph, {}, {x: 0, y: 0}, {})
 
-  expect(valuesOf(result.edges).length).toBe(1)
+  expect(valuesOf(result!.edges).length).toBe(1)
 })
 
 test('horizontalOffset', () => {
