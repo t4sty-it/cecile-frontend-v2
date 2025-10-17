@@ -8,14 +8,15 @@ import * as s from '../set';
 import { /* HelpedCommand, */ MetaCommand, parse } from "./parser";
 
 type BaseTerm = {
-    node: string,
+    node: string | null,
     label: string | null,
     params?: { name: string, value: number | string }[]
 }
 
 type Creator = BaseTerm & {
   action: 'create',
-  quantity?: number
+  quantity?: number,
+  node: string
 }
 
 type Selector = BaseTerm & {
@@ -107,15 +108,16 @@ export function execSelect
   return g.graphOf(matchedNodes, matchedNodeParams, [])
 }
 
-function matchNode(name: string, label: string | null, node: Node): boolean {
-  return (
-    fuzzyFind(name, [node.name]).length > 0 ||
-    (
-      label != null && label != '' &&
-      node.label != null && node.label != '' &&
-      fuzzyFind(label, [node.label!]).length > 0
-    )
-  )
+function matchNode(name: string | null, label: string | null, node: Node): boolean {
+  const labelMatches = label != null && node.label != null && fuzzyFind(label, [node.label]).length > 0
+  const nameMatches = name != null && fuzzyFind(name, [node.name]).length > 0
+
+  if (label == null && name == null) throw 'Cannot have both label and name null'
+  if (label != null && name == null) return labelMatches
+  if (label == null && name != null) return nameMatches
+  if (label != null && name != null) return labelMatches && nameMatches
+
+  throw '???'
 }
 
 export function execCreate(
