@@ -107,7 +107,7 @@ export function useGraphData() {
       params,
       edges.map(e => ({id: `${e.src.id}:${e.dst.id}`, src: e.src.id, dst: e.dst.id }))
     )
-    const diffGraph = exec(cmd, srcGraph, nodeBuilders, mousePosition)
+    const diffGraph = exec(cmd, srcGraph, nodeBuilders, mousePosition, {})! // TODO remove when actually adding metaCommands
     const [newNodes, newParams, newEdges] = valuesOf(union(srcGraph, diffGraph))
     setNodes(newNodes)
     setParams(newParams)
