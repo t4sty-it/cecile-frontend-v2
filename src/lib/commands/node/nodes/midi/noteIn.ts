@@ -35,6 +35,9 @@ class MidiNoteIn extends MidiInputNode {
 
     this.setOutput(this.channel, message.channel)
     this.setOutput(this.frequency, noteToFrequency(message.note))
-    this.setOutput(this.velocity, velocityToGain(message.velocity))
+    this.setOutput(
+      this.velocity,
+      message.type === 'noteoff' ? 0 : velocityToGain(message.velocity)
+    )
   }
 }

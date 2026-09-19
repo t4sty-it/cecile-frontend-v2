@@ -34,8 +34,11 @@
 
   &__input {
     flex: 1;
-    input {
+    min-width: 0;
+
+    input, select {
       width: 100%;
+      max-width: 100%;
     }
   }
 
