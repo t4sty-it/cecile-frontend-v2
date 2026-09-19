@@ -1,8 +1,14 @@
-import { CustomAudioNode } from "../custom";
+import { AudioValue, CustomAudioNode } from "../custom";
 import { Node } from "../node";
 
 export const display: Node = {
   params: () => [
+    {
+      name: 'label',
+      type: 'param',
+      dataType: 'string',
+      value: 'display'
+    },
     {
       name: 'input',
       type: 'input',
@@ -18,6 +24,8 @@ class Display extends CustomAudioNode {
   private analyser: AnalyserNode
   private data: Float32Array
   private lastValue?: number
+  private label = 'display'
+  private readonly labelParam: AudioValue
 
   constructor(actx: AudioContext) {
     super(actx)
@@ -26,7 +34,14 @@ class Display extends CustomAudioNode {
     this.data = new Float32Array(this.analyser.fftSize)
     this.connect(this.analyser)
 
+    this.labelParam = Object.defineProperty({} as AudioValue, 'value', {
+      enumerable: true,
+      get: () => this.label,
+      set: (v: string) => { this.label = v }
+    })
+
     this.params = {
+      label: this.labelParam,
       input: this
     }
 
@@ -39,7 +54,7 @@ class Display extends CustomAudioNode {
 
     if (this.lastValue == null || Math.abs(value - this.lastValue) > 1e-6) {
       this.lastValue = value
-      console.log('display:', value)
+      console.log(`${this.label}: ${value}`)
     }
 
     requestAnimationFrame(this.poll)
