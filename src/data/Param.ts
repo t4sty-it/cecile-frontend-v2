@@ -15,6 +15,7 @@ export interface ParamData {
   type: 'input' | 'output' | 'param'
   dataType: 'number' | 'string' | 'signal'
   options?: ParamOption[]
+  dynamicOptions?: 'midi-input-device'
   min?: number
   max?: number
 }

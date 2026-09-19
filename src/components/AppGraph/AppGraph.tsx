@@ -12,6 +12,7 @@ import { useMousePosition } from '@/hooks/useMousePosition'
 import { useConnectionEvents } from './useConnectionEvents'
 import { useSelectionStore } from '@/contexts/SelectionContext'
 import { useSelectionEvents } from './useSelectionEvents'
+import { useMidiInputNames } from '@/hooks/useMidiInputNames'
 
 export default function AppGraph({
   nodes,
@@ -32,7 +33,11 @@ export default function AppGraph({
 }) {
 
   const graph = new Graph(nodes, params, edges)
-  
+
+  const midiInputNames = useMidiInputNames(
+    params.some(p => p.dynamicOptions === 'midi-input-device')
+  )
+
   const {
     connectionStart,
     connectionStarted,
@@ -111,7 +116,9 @@ export default function AppGraph({
                 key={param.id}
                 name={param.name}
                 value={param.value?.toString()}
-                options={param.options}
+                options={param.dynamicOptions === 'midi-input-device'
+                  ? midiInputNames.map(name => ({label: name, value: name}))
+                  : param.options}
                 showInput={param.dataType != 'signal'}
                 connectable={param.type == 'input' && param.dataType != 'string'}
                 onMouseUp={() => endConnection(param)}

@@ -1,10 +1,10 @@
 import { Node } from "../../node"
 import { MidiMessage } from "@/lib/midi/message"
-import { MidiInputNode } from "./base"
+import { MidiInputNode, deviceParamData } from "./base"
 
 export const midiCcIn: Node = {
   params: () => [
-    { name: 'device', type: 'param', dataType: 'string', value: '' },
+    deviceParamData,
     { name: 'channel', type: 'output', dataType: 'signal' },
     { name: 'cc', type: 'output', dataType: 'signal' },
     { name: 'value', type: 'output', dataType: 'signal' },

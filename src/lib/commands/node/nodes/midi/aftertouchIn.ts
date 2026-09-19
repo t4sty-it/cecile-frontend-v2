@@ -1,10 +1,10 @@
 import { Node } from "../../node"
 import { MidiMessage } from "@/lib/midi/message"
-import { MidiInputNode } from "./base"
+import { MidiInputNode, deviceParamData } from "./base"
 
 export const midiAftertouchIn: Node = {
   params: () => [
-    { name: 'device', type: 'param', dataType: 'string', value: '' },
+    deviceParamData,
     { name: 'channel', type: 'output', dataType: 'signal' },
     { name: 'pressure', type: 'output', dataType: 'signal' },
   ],

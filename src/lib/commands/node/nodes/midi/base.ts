@@ -1,6 +1,15 @@
+import { ParamData } from "@/data/Param"
 import { AudioValue, CustomAudioNode } from "../../custom"
 import { findMidiInput, getMidiAccess } from "@/lib/midi/access"
 import { MidiMessage, parseMidiMessage } from "@/lib/midi/message"
+
+export const deviceParamData: ParamData = {
+  name: 'device',
+  type: 'param',
+  dataType: 'string',
+  dynamicOptions: 'midi-input-device',
+  value: ''
+}
 
 export abstract class MidiInputNode extends CustomAudioNode {
 
@@ -19,7 +28,7 @@ export abstract class MidiInputNode extends CustomAudioNode {
 
     getMidiAccess()
       .then(access => {
-        access.onstatechange = () => this.attach()
+        access.addEventListener('statechange', () => this.attach())
         this.attach()
       })
       .catch(err => console.error('midi access unavailable', err))
