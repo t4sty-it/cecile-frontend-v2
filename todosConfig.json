@@ -1,0 +1,38 @@
+{
+  "editor": "codium",
+  "paths": [
+    "todos"
+  ],
+
+  "display": {
+    "type": {
+      "bug": "red",
+      "feature": "italic blue"
+    },
+    "status": {
+      "active": "bold",
+      "done": "gray"
+    }
+  },
+
+
+  "views": {
+    "features": {
+      // include: ANDed — todo must match all conditions
+      "include": [{ "type": "feature" }],
+      // exclude: ORed — todo is dropped if it matches any condition
+      "exclude": [{ "status": "done" }],
+      // sort: multi-key; each entry is "<field>" or "<field> asc|desc" (default asc)
+      "sort": ["id desc"]
+    },
+    "bugs": {
+      "include": [{ "type": "bug" }],
+      "exclude": [{ "status": "done" }],
+      "sort": ["id desc"]
+    },
+    "backlog": {
+      "include": [{ "status": "new" }],
+      "sort": ["type asc", "id desc"]
+    }
+  }
+}
