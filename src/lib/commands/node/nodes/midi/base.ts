@@ -11,6 +11,13 @@ export const deviceParamData: ParamData = {
   value: ''
 }
 
+export const channelParamData: ParamData = {
+  name: 'channel',
+  type: 'param',
+  dataType: 'string',
+  value: ''
+}
+
 export abstract class MidiInputNode extends CustomAudioNode {
 
   private search = ''
@@ -46,17 +53,31 @@ export abstract class MidiInputNode extends CustomAudioNode {
     output.offset.setValueAtTime(value, this.context.currentTime)
   }
 
+  protected createFilterParam(): { param: AudioValue, matches: (value: number) => boolean } {
+    let filter = ''
+
+    const param = Object.defineProperty({} as AudioValue, 'value', {
+      enumerable: true,
+      get: () => filter,
+      set: (v: string) => { filter = v }
+    })
+
+    const matches = (value: number) => filter === '' || parseInt(filter, 10) === value
+
+    return { param, matches }
+  }
+
+  private readonly handleMessage = (ev: Event) => {
+    const data = (ev as MIDIMessageEvent).data
+    const message = parseMidiMessage(data)
+    if (message) this.onMidiMessage(message)
+  }
+
   private attach() {
     getMidiAccess().then(access => {
-      if (this.input) this.input.onmidimessage = null
+      if (this.input) this.input.removeEventListener('midimessage', this.handleMessage)
       this.input = findMidiInput(access, this.search)
-      if (this.input) {
-        this.input.onmidimessage = (ev) => {
-          const data = (ev as MIDIMessageEvent).data
-          const message = parseMidiMessage(data)
-          if (message) this.onMidiMessage(message)
-        }
-      }
+      if (this.input) this.input.addEventListener('midimessage', this.handleMessage)
     })
   }
 }

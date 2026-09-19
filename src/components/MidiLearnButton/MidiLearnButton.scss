@@ -1,0 +1,51 @@
+.midi-learn-button {
+  position: absolute;
+  top: 0.5em;
+  right: 0.5em;
+
+  display: grid;
+  place-content: center;
+  width: 2.25em;
+  height: 2.25em;
+
+  background: transparent;
+  border: none;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  transition: background 150ms;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+}
+
+.midi-learn-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+
+  display: grid;
+  place-content: center;
+
+  background: rgba(0, 0, 0, 0.5);
+
+  &__box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5em;
+
+    padding: 2em 3em;
+    background: white;
+    color: #555;
+    border-radius: 4px;
+    box-shadow: 0 0 2em rgba(0, 0, 0, 0.4);
+    text-align: center;
+  }
+
+  &__title {
+    font-weight: 600;
+    font-size: 1.1em;
+  }
+}

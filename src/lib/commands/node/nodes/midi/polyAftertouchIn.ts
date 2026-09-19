@@ -1,11 +1,11 @@
 import { Node } from "../../node"
 import { MidiMessage } from "@/lib/midi/message"
-import { MidiInputNode, deviceParamData } from "./base"
+import { MidiInputNode, channelParamData, deviceParamData } from "./base"
 
 export const midiPolyAftertouchIn: Node = {
   params: () => [
     deviceParamData,
-    { name: 'channel', type: 'output', dataType: 'signal' },
+    channelParamData,
     { name: 'note', type: 'output', dataType: 'signal' },
     { name: 'pressure', type: 'output', dataType: 'signal' },
   ],
@@ -15,16 +15,16 @@ export const midiPolyAftertouchIn: Node = {
 
 class MidiPolyAftertouchIn extends MidiInputNode {
 
-  private channel = this.createOutput()
   private note = this.createOutput()
   private pressure = this.createOutput()
+  private channel = this.createFilterParam()
 
   constructor(actx: AudioContext) {
     super(actx)
 
     this.params = {
       device: this.deviceParam,
-      channel: this.channel,
+      channel: this.channel.param,
       note: this.note,
       pressure: this.pressure,
     }
@@ -32,8 +32,8 @@ class MidiPolyAftertouchIn extends MidiInputNode {
 
   protected onMidiMessage(message: MidiMessage) {
     if (message.type !== 'polypressure') return
+    if (!this.channel.matches(message.channel)) return
 
-    this.setOutput(this.channel, message.channel)
     this.setOutput(this.note, message.note)
     this.setOutput(this.pressure, message.pressure)
   }

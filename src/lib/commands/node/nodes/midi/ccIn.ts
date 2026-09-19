@@ -1,12 +1,12 @@
 import { Node } from "../../node"
 import { MidiMessage } from "@/lib/midi/message"
-import { MidiInputNode, deviceParamData } from "./base"
+import { MidiInputNode, channelParamData, deviceParamData } from "./base"
 
 export const midiCcIn: Node = {
   params: () => [
     deviceParamData,
-    { name: 'channel', type: 'output', dataType: 'signal' },
-    { name: 'cc', type: 'output', dataType: 'signal' },
+    channelParamData,
+    { name: 'cc', type: 'param', dataType: 'string', value: '' },
     { name: 'value', type: 'output', dataType: 'signal' },
   ],
 
@@ -15,26 +15,26 @@ export const midiCcIn: Node = {
 
 class MidiCcIn extends MidiInputNode {
 
-  private channel = this.createOutput()
-  private cc = this.createOutput()
   private value = this.createOutput()
+  private channel = this.createFilterParam()
+  private cc = this.createFilterParam()
 
   constructor(actx: AudioContext) {
     super(actx)
 
     this.params = {
       device: this.deviceParam,
-      channel: this.channel,
-      cc: this.cc,
+      channel: this.channel.param,
+      cc: this.cc.param,
       value: this.value,
     }
   }
 
   protected onMidiMessage(message: MidiMessage) {
     if (message.type !== 'cc') return
+    if (!this.channel.matches(message.channel)) return
+    if (!this.cc.matches(message.controller)) return
 
-    this.setOutput(this.channel, message.channel)
-    this.setOutput(this.cc, message.controller)
     this.setOutput(this.value, message.value)
   }
 }

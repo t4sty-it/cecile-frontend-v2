@@ -35,8 +35,8 @@ const buildParams: (node: Node, nodeType: string, overrides: Record<string, stri
   id: Math.random() + '',
   parentId: node.id,
   offset: {x: 0, y: 0},
-  value: overrides[paramData.name],
-  ...paramData
+  ...paramData,
+  value: overrides[paramData.name] ?? paramData.value
 }))
 
 export const commands = Object.keys(nodes)

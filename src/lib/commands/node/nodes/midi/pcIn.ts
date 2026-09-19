@@ -1,11 +1,11 @@
 import { Node } from "../../node"
 import { MidiMessage } from "@/lib/midi/message"
-import { MidiInputNode, deviceParamData } from "./base"
+import { MidiInputNode, channelParamData, deviceParamData } from "./base"
 
 export const midiPcIn: Node = {
   params: () => [
     deviceParamData,
-    { name: 'channel', type: 'output', dataType: 'signal' },
+    channelParamData,
     { name: 'program', type: 'output', dataType: 'signal' },
   ],
 
@@ -14,23 +14,23 @@ export const midiPcIn: Node = {
 
 class MidiPcIn extends MidiInputNode {
 
-  private channel = this.createOutput()
   private program = this.createOutput()
+  private channel = this.createFilterParam()
 
   constructor(actx: AudioContext) {
     super(actx)
 
     this.params = {
       device: this.deviceParam,
-      channel: this.channel,
+      channel: this.channel.param,
       program: this.program,
     }
   }
 
   protected onMidiMessage(message: MidiMessage) {
     if (message.type !== 'programchange') return
+    if (!this.channel.matches(message.channel)) return
 
-    this.setOutput(this.channel, message.channel)
     this.setOutput(this.program, message.program)
   }
 }

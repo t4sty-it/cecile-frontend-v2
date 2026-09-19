@@ -1,11 +1,11 @@
 import { Node } from "../../node"
 import { MidiMessage, noteToFrequency, velocityToGain } from "@/lib/midi/message"
-import { MidiInputNode, deviceParamData } from "./base"
+import { MidiInputNode, channelParamData, deviceParamData } from "./base"
 
 export const midiNoteIn: Node = {
   params: () => [
     deviceParamData,
-    { name: 'channel', type: 'output', dataType: 'signal' },
+    channelParamData,
     { name: 'frequency', type: 'output', dataType: 'signal' },
     { name: 'velocity', type: 'output', dataType: 'signal' },
   ],
@@ -15,16 +15,16 @@ export const midiNoteIn: Node = {
 
 class MidiNoteIn extends MidiInputNode {
 
-  private channel = this.createOutput()
   private frequency = this.createOutput()
   private velocity = this.createOutput()
+  private channel = this.createFilterParam()
 
   constructor(actx: AudioContext) {
     super(actx)
 
     this.params = {
       device: this.deviceParam,
-      channel: this.channel,
+      channel: this.channel.param,
       frequency: this.frequency,
       velocity: this.velocity,
     }
@@ -32,8 +32,8 @@ class MidiNoteIn extends MidiInputNode {
 
   protected onMidiMessage(message: MidiMessage) {
     if (message.type !== 'noteon' && message.type !== 'noteoff') return
+    if (!this.channel.matches(message.channel)) return
 
-    this.setOutput(this.channel, message.channel)
     this.setOutput(this.frequency, noteToFrequency(message.note))
     this.setOutput(
       this.velocity,

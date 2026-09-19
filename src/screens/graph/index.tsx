@@ -1,10 +1,14 @@
 import AppGraph from "@/components/AppGraph/AppGraph";
 import ConsoleInput from "@/components/ConsoleInput/ConsoleInput";
+import MidiLearnButton from "@/components/MidiLearnButton/MidiLearnButton";
 import { Graph } from "@/data/Graph";
 import { useGraphData } from "@/hooks/useGraphData";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import { useMousePosition } from "@/hooks/useMousePosition";
 import { commands } from "@/lib/commands";
+import { buildNode } from "@/lib/commands/node";
 import { nodes } from "@/lib/commands/node/nodes";
+import { MidiLearnResult } from "@/lib/midi/learn";
 import { project } from "@/lib/record";
 import { fuzzyFind } from "@/utils/fuzzyFind";
 import { useEffect, useRef, useState } from "react";
@@ -22,6 +26,15 @@ export default function GraphPage() {
   ])
 
   const graph = useGraphData()
+  const mousePosition = useMousePosition()
+
+  const onMidiLearned = ({ nodeType, paramOverrides }: MidiLearnResult) => {
+    const [node, params] = buildNode(nodeType, {
+      nodeOverrides: { name: nodeType, position: mousePosition },
+      paramOverrides
+    })
+    graph.addNode(node, params)
+  }
 
   useEffect(() => {
     if (initialized) {
@@ -68,6 +81,8 @@ export default function GraphPage() {
       <div className="graph-page__header">
         Cécile 2.0
       </div>
+
+      <MidiLearnButton onLearned={onMidiLearned} />
 
       <ConsoleInput
         ref={inputRef}
