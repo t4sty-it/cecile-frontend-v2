@@ -1,0 +1,106 @@
+{
+  "todos/1-shortcuts.md": {
+    "blobSha": "b98055ba4b85948604aa0d122e781c3d6857a6a0",
+    "schemaVersion": 5,
+    "createdAt": "2026-09-19T09:55:44+02:00",
+    "updatedAt": "2026-09-19T09:55:44+02:00",
+    "id": "1",
+    "title": "shortcuts",
+    "status": "new",
+    "type": "feature",
+    "tags": [
+      "untagged"
+    ]
+  },
+  "todos/2-command-history.md": {
+    "blobSha": "1d74d4c8bc8ea268ef65436f12cd4860d8a27ca8",
+    "schemaVersion": 5,
+    "createdAt": "2026-09-19T09:55:44+02:00",
+    "updatedAt": "2026-09-19T09:55:44+02:00",
+    "id": "2",
+    "title": "command history",
+    "status": "new",
+    "type": "feature",
+    "tags": [
+      "untagged"
+    ]
+  },
+  "todos/3-midi-input.md": {
+    "blobSha": "9bc8c3664c5b3e9ef49ca689ce59db9f00b1e740",
+    "schemaVersion": 5,
+    "createdAt": "2026-09-19T09:55:44+02:00",
+    "updatedAt": "2026-09-19T09:55:44+02:00",
+    "id": "3",
+    "title": "midi input",
+    "status": "new",
+    "type": "feature",
+    "tags": [
+      "modules"
+    ]
+  },
+  "todos/4-README.md": {
+    "blobSha": "b4c337fd0ec6d1e5e02e2af106c1478cddc4ae3a",
+    "schemaVersion": 5,
+    "createdAt": "2026-09-19T09:58:37+02:00",
+    "updatedAt": "2026-09-19T09:58:37+02:00",
+    "id": "4",
+    "title": "README",
+    "status": "new",
+    "type": "feature",
+    "tags": [
+      "untagged"
+    ]
+  },
+  "todos/5-mic-input.md": {
+    "blobSha": "e13e3b5a86ac0f9aa9ec650af4b163d467939535",
+    "schemaVersion": 5,
+    "createdAt": "2026-09-19T09:58:37+02:00",
+    "updatedAt": "2026-09-19T09:58:37+02:00",
+    "id": "5",
+    "title": "mic input",
+    "status": "TBD",
+    "type": "feature",
+    "tags": [
+      "modules"
+    ]
+  },
+  "todos/6-user-manual.md": {
+    "blobSha": "edc334732dcd61c889932fe09358828b77b93e58",
+    "schemaVersion": 5,
+    "createdAt": "2026-09-19T09:58:37+02:00",
+    "updatedAt": "2026-09-19T09:58:37+02:00",
+    "id": "6",
+    "title": "user manual",
+    "status": "TBD",
+    "type": "feature",
+    "tags": [
+      "untagged"
+    ]
+  },
+  "todos/7-better-autocomplete.md": {
+    "blobSha": "b5da9d9b8cf1b4f2df0920b770826333c5fca13e",
+    "schemaVersion": 5,
+    "createdAt": "2026-09-19T09:58:37+02:00",
+    "updatedAt": "2026-09-19T09:58:37+02:00",
+    "id": "7",
+    "title": "better autocomplete",
+    "status": "new",
+    "type": "feature",
+    "tags": [
+      "untagged"
+    ]
+  },
+  "todos/8-remove-node-top-padding.md": {
+    "blobSha": "32a83651ab71680843342291c45f86943c21cb51",
+    "schemaVersion": 5,
+    "createdAt": "2026-09-19T09:58:37+02:00",
+    "updatedAt": "2026-09-19T09:58:37+02:00",
+    "id": "8",
+    "title": "remove node top padding",
+    "status": "new",
+    "type": "bug",
+    "tags": [
+      "layout"
+    ]
+  }
+}

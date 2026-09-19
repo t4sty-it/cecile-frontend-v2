@@ -7,4 +7,6 @@ tags:
 ---
 # better autocomplete
 
-Offer param names autocomplete when typing "@"
+Offer param names autocomplete when typing "@" or "}"
+
+TBD: what about "{" ?
