@@ -9,6 +9,7 @@ import { noise } from "./noise"
 import { ahr } from "./ahr"
 import { clip } from "./clip"
 import { delay } from "./delay"
+import { midiNodes } from "./midi"
 
 export const nodes: Record<string, Node> = {
   oscillator,
@@ -19,5 +20,6 @@ export const nodes: Record<string, Node> = {
   noise,
   ahr,
   clip,
-  delay
+  delay,
+  ...midiNodes
 }
