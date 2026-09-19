@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test"
-import { parseMidiMessage } from "./message"
+import { noteToFrequency, parseMidiMessage, velocityToGain } from "./message"
 
 describe("parseMidiMessage", () => {
   test("parses note on", () => {
@@ -56,5 +56,23 @@ describe("parseMidiMessage", () => {
 
   test("returns null for empty data", () => {
     expect(parseMidiMessage([])).toBeNull()
+  })
+})
+
+describe("noteToFrequency", () => {
+  test("converts A4 (note 69) to 440Hz", () => {
+    expect(noteToFrequency(69)).toBeCloseTo(440)
+  })
+
+  test("converts A3 (note 57) to 220Hz", () => {
+    expect(noteToFrequency(57)).toBeCloseTo(220)
+  })
+})
+
+describe("velocityToGain", () => {
+  test("scales velocity from 0-127 to 0-1", () => {
+    expect(velocityToGain(0)).toBe(0)
+    expect(velocityToGain(127)).toBe(1)
+    expect(velocityToGain(64)).toBeCloseTo(0.504)
   })
 })

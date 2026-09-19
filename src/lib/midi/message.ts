@@ -38,3 +38,11 @@ export function parseMidiMessage(data: ArrayLike<number>): MidiMessage | null {
       return null
   }
 }
+
+export function noteToFrequency(note: number): number {
+  return 440 * Math.pow(2, (note - 69) / 12)
+}
+
+export function velocityToGain(velocity: number): number {
+  return velocity / 127
+}
