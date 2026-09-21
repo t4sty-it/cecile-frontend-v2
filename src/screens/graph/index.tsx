@@ -4,7 +4,7 @@ import MidiLearnButton from "@/components/MidiLearnButton/MidiLearnButton";
 import { Graph } from "@/data/Graph";
 import { useGraphData } from "@/hooks/useGraphData";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
-import { useMousePosition } from "@/hooks/useMousePosition";
+import { useMousePositionRef } from "@/hooks/useMousePosition";
 import { commands } from "@/lib/commands";
 import { buildNode } from "@/lib/commands/node";
 import { nodes } from "@/lib/commands/node/nodes";
@@ -26,11 +26,11 @@ export default function GraphPage() {
   ])
 
   const graph = useGraphData()
-  const mousePosition = useMousePosition()
+  const mousePositionRef = useMousePositionRef()
 
   const onMidiLearned = ({ nodeType, paramOverrides }: MidiLearnResult) => {
     const [node, params] = buildNode(nodeType, {
-      nodeOverrides: { name: nodeType, position: mousePosition },
+      nodeOverrides: { name: nodeType, position: mousePositionRef.current },
       paramOverrides
     })
     graph.addNode(node, params)
