@@ -4,6 +4,7 @@ import MidiLearnButton from "@/components/MidiLearnButton/MidiLearnButton";
 import { Graph } from "@/data/Graph";
 import { useGraphData } from "@/hooks/useGraphData";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
+import { useMidiLearn } from "@/hooks/useMidiLearn";
 import { useMousePositionRef } from "@/hooks/useMousePosition";
 import { commands } from "@/lib/commands";
 import { buildNode } from "@/lib/commands/node";
@@ -21,12 +22,9 @@ export default function GraphPage() {
   const [audioGraph, initialized] = useAudioGraph(project(nodes, n => n.build))
   const inputRef = useRef<HTMLInputElement>(null)
 
-  useKeyboardShortcuts([
-    [['Space'], _ => inputRef.current?.focus()]
-  ])
-
   const graph = useGraphData()
   const mousePositionRef = useMousePositionRef()
+  const midiLearn = useMidiLearn()
 
   const onMidiLearned = ({ nodeType, paramOverrides }: MidiLearnResult) => {
     const [node, params] = buildNode(nodeType, {
@@ -35,6 +33,11 @@ export default function GraphPage() {
     })
     graph.addNode(node, params)
   }
+
+  useKeyboardShortcuts([
+    [['Space'], _ => inputRef.current?.focus()],
+    [['m'], () => midiLearn.start(onMidiLearned)],
+  ])
 
   useEffect(() => {
     if (initialized) {
@@ -82,7 +85,12 @@ export default function GraphPage() {
         Cécile 2.0
       </div>
 
-      <MidiLearnButton onLearned={onMidiLearned} />
+      <MidiLearnButton
+        learning={midiLearn.learning}
+        start={midiLearn.start}
+        cancel={midiLearn.cancel}
+        onLearned={onMidiLearned}
+      />
 
       <ConsoleInput
         ref={inputRef}

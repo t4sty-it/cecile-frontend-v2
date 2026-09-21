@@ -1,14 +1,17 @@
-import { useMidiLearn } from "@/hooks/useMidiLearn"
 import { MidiLearnResult } from "@/lib/midi/learn"
 import './MidiLearnButton.scss'
 
 export default function MidiLearnButton({
+  learning,
+  start,
+  cancel,
   onLearned
 }: {
+  learning: boolean
+  start: (onLearned: (result: MidiLearnResult) => void) => void
+  cancel: () => void
   onLearned: (result: MidiLearnResult) => void
 }) {
-  const { learning, start, cancel } = useMidiLearn()
-
   return (
     <>
       <button
