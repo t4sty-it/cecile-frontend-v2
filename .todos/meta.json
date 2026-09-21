@@ -78,10 +78,10 @@
     ]
   },
   "todos/7-better-autocomplete.md": {
-    "blobSha": "b5da9d9b8cf1b4f2df0920b770826333c5fca13e",
+    "blobSha": "592db59598b00f77d32ff1717bb52dcbfb3428e3",
     "schemaVersion": 5,
     "createdAt": "2026-09-19T09:58:37+02:00",
-    "updatedAt": "2026-09-19T09:58:37+02:00",
+    "updatedAt": "2026-09-19T16:42:57+02:00",
     "id": "7",
     "title": "better autocomplete",
     "status": "new",
@@ -101,6 +101,32 @@
     "type": "bug",
     "tags": [
       "layout"
+    ]
+  },
+  "todos/10-command-selection-not-working.md": {
+    "blobSha": "6662ac7e9ca85dd283ed83805bdea84b0b77b020",
+    "schemaVersion": 5,
+    "createdAt": "2026-09-19T16:42:57+02:00",
+    "updatedAt": "2026-09-19T16:42:57+02:00",
+    "id": "10",
+    "title": "command selection not working",
+    "status": "new",
+    "type": "bug",
+    "tags": [
+      "untagged"
+    ]
+  },
+  "todos/9-oscillator-gain-not-working.md": {
+    "blobSha": "1a1a52a53fa82e713db723a8e1b8129e5fba50d3",
+    "schemaVersion": 5,
+    "createdAt": "2026-09-19T16:42:57+02:00",
+    "updatedAt": "2026-09-19T16:42:57+02:00",
+    "id": "9",
+    "title": "oscillator gain not working",
+    "status": "new",
+    "type": "bug",
+    "tags": [
+      "untagged"
     ]
   }
 }

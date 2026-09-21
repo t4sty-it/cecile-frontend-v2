@@ -2,9 +2,9 @@ import { describe, expect, test } from "bun:test"
 import { midiLearnResult } from "./learn"
 
 describe("midiLearnResult", () => {
-  test("maps a note message to midi-note-in", () => {
+  test("maps a note message to midi-keyboard-in", () => {
     expect(midiLearnResult('Keyboard', { type: 'noteon', channel: 0, note: 60, velocity: 100 }))
-      .toEqual({ nodeType: 'midi-note-in', paramOverrides: { device: 'Keyboard', channel: '0' } })
+      .toEqual({ nodeType: 'midi-keyboard-in', paramOverrides: { device: 'Keyboard', channel: '0' } })
   })
 
   test("maps a cc message to midi-cc-in with the cc number preset", () => {

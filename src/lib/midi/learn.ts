@@ -16,7 +16,7 @@ export function midiLearnResult(deviceName: string, message: MidiMessage): MidiL
   switch (message.type) {
     case 'noteon':
     case 'noteoff':
-      return { nodeType: 'midi-note-in', paramOverrides: withChannel }
+      return { nodeType: 'midi-keyboard-in', paramOverrides: withChannel }
     case 'cc':
       return { nodeType: 'midi-cc-in', paramOverrides: { ...withChannel, cc: message.controller + '' } }
     case 'pitchbend':
