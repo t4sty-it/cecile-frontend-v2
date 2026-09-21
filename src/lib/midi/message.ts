@@ -46,3 +46,11 @@ export function noteToFrequency(note: number): number {
 export function velocityToGain(velocity: number): number {
   return velocity / 127
 }
+
+const PITCH_BEND_CENTER = 8192
+
+// `value` is the raw 14-bit pitch bend value (0-16383, centered on 8192).
+// `rangeSemitones` is the number of semitones the bend spans at full deflection.
+export function pitchBendToSemitones(value: number, rangeSemitones: number): number {
+  return ((value - PITCH_BEND_CENTER) / PITCH_BEND_CENTER) * rangeSemitones
+}
