@@ -8,7 +8,7 @@ Cécile is a web-based modular synth editor, inspired by Pure Data: you place au
 
 ## Commands
 
-Package manager is **bun** (see `bun.lockb`, `shell.nix` provides `bun` + `awscli2`).
+Package manager is **bun** (see `bun.lockb`, `shell.nix` provides `bun` + `curl`).
 
 - `bun install` — install deps
 - `bun run dev` — start Vite dev server
@@ -17,7 +17,7 @@ Package manager is **bun** (see `bun.lockb`, `shell.nix` provides `bun` + `awscl
 - `bun test` — run all `*.test.ts` tests (uses `bun:test`, not vitest/jest)
 - `bun test src/lib/lang/exec.test.ts` — run a single test file
 - `bun run parser` — regenerate `src/lib/lang/parser.ts` from `src/lib/lang/grammar.pegjs` (must be re-run after editing the grammar; the generated parser is checked in)
-- `bun run deploy` — builds and syncs `dist/` to a Scaleway S3-compatible bucket (`scripts/deploy.sh`); requires the `scaleway` AWS CLI profile
+- `bun run deploy` — builds and syncs `dist/` to a Scaleway bucket via the S3 REST API using plain `curl --aws-sigv4` (`scripts/deploy.sh`); needs `SCW_ACCESS_KEY`/`SCW_SECRET_KEY` in the env or a gitignored `.deploy.local`
 
 Path alias `@/*` maps to `src/*` (see `tsconfig.json` / `vite-tsconfig-paths`).
 
