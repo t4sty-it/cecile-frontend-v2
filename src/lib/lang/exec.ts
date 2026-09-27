@@ -43,6 +43,11 @@ const isConnector = id<Connector>('connect')
 type Term = Creator | Selector
 type Graph = g.Graph<Node, Param>
 
+// Thrown for invalid-but-anticipated user input (e.g. an unresolvable
+// outlet/inlet name) so callers can catch it and show a message, as opposed
+// to a genuine programming error.
+export class CommandError extends Error {}
+
 export function exec(
   command: string,
   graph: Graph,
@@ -128,6 +133,9 @@ export function execCreate(
 
   const nodeName = fuzzyFind(cmd.node, Object.keys(nodeBuilders))[0]
 
+  if (nodeName == null)
+    throw new CommandError(`"${cmd.node}" is not a valid module name`)
+
   const toLabelledNode: (i:[Node, Param[]]) => [Node, Param[]] =
   ([node, params]) => [
     ({...node, label: cmd.label ?? undefined}),
@@ -188,14 +196,26 @@ export function execCreate(
 }
 
 export function execConnect(src: Graph, op: Connector, dst: Graph): Graph {
-  
+
+  // an outlet only ever refers to an audio output, and an inlet only ever to
+  // an audio input - a 'param' (e.g. a device selector, a knob value) can
+  // never be a wiring endpoint, no matter how well its name fuzzy-matches
+  const srcOutputs = s.valuesOf(src.params).filter(x => x.type == 'output')
+  const dstInputs = s.valuesOf(dst.params).filter(x => x.type == 'input')
+
   const srcParams = op.outlet
-    ? fuzzyFilter(op.outlet, s.valuesOf(src.params), x => x.name)
-    : s.valuesOf(src.params).filter(x => x.name == 'output')
+    ? fuzzyFilter(op.outlet, srcOutputs, x => x.name)
+    : srcOutputs.filter(x => x.name == 'output')
 
   const dstParams = op.inlet
-    ? fuzzyFilter(op.inlet, s.valuesOf(dst.params), x => x.name)
-    : s.valuesOf(dst.params).filter(x => x.name == 'input')
+    ? fuzzyFilter(op.inlet, dstInputs, x => x.name)
+    : dstInputs.filter(x => x.name == 'input')
+
+  if (op.outlet && srcParams.length == 0)
+    throw new CommandError(`No output named "${op.outlet}" found`)
+
+  if (op.inlet && dstParams.length == 0)
+    throw new CommandError(`No input named "${op.inlet}" found`)
 
   return g.graphOf<Node, Param>(
     s.union(src.nodes, dst.nodes),

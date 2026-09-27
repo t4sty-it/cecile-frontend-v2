@@ -56,6 +56,8 @@ export default function GraphPage() {
   const [hints, setHints] = useState<string[]>([])
   const onInput = (input: string) => {
     if (input.length > 0) {
+      graph.clearError()
+
       const tokens = input.split(/\W/)
       const tail = tokens.at(-1) ?? ''
       const head = input.length > tail.length
@@ -97,6 +99,7 @@ export default function GraphPage() {
         onCommand={onCommand}
         onInput={onInput}
         hints={hints}
+        error={graph.error}
       />
     </div>
   )

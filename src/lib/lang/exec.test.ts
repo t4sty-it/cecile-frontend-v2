@@ -1,5 +1,5 @@
 import { test, expect } from 'bun:test'
-import { exec, execConnect, execCreate, execSelect, horizontalOffset } from './exec'
+import { CommandError, exec, execConnect, execCreate, execSelect, horizontalOffset } from './exec'
 import { graphOf } from '../graph'
 import { Node } from '@/data/Node'
 import { Param } from '@/data/Param'
@@ -7,6 +7,15 @@ import { length, valuesOf } from '../set'
 import * as p from '@/data/Point'
 
 const pos = () => ({x: 0, y: 0})
+
+function catchThrown(fn: () => unknown): unknown {
+  try {
+    fn()
+    return undefined
+  } catch (e) {
+    return e
+  }
+}
 
 function makeGraph() {
   return graphOf<Node, Param>(
@@ -50,6 +59,19 @@ test('execCreate', () => {
   expect(length(creation.edges)).toBe(0)
 })
 
+test('execCreate throws a recoverable CommandError when no node builder matches', () => {
+  const nodeBuilders: Record<string, () => [Node, Param[]]> = {
+    oscillator: () => [
+      {id: 'x', name: 'oscillator', position: pos()},
+      []
+    ]
+  }
+  const thrown = catchThrown(() =>
+    execCreate(nodeBuilders, {action: 'create', node: 'zzz', quantity: 1, label: null}, {x: 0, y: 0})
+  )
+  expect(thrown).toBeInstanceOf(CommandError)
+})
+
 test('execConnect', () => {
   const g1 = graphOf<Node, Param>(
     [
@@ -76,6 +98,75 @@ test('execConnect', () => {
   expect(length(c2.edges)).toBe(1)
 })
 
+function midiKeyboardInLikeGraph() {
+  // Mirrors midi-keyboard-in's real params: a 'device' param (type 'param',
+  // just a config value) alongside 'frequency'/'velocity' outputs (type
+  // 'output', real signal sources).
+  return graphOf<Node, Param>(
+    [{ id: 'n1', name: 'midi-keyboard-in', position: pos() }],
+    [
+      { id: 'p-device', dataType: 'string', name: 'device', offset: pos(), type: 'param', parentId: 'n1' },
+      { id: 'p-frequency', dataType: 'number', name: 'frequency', offset: pos(), type: 'output', parentId: 'n1' },
+      { id: 'p-velocity', dataType: 'number', name: 'velocity', offset: pos(), type: 'output', parentId: 'n1' },
+    ],
+    []
+  )
+}
+
+function ahrLikeGraph() {
+  return graphOf<Node, Param>(
+    [{ id: 'n2', name: 'ahr', position: pos() }],
+    [{ id: 'p-input', dataType: 'number', name: 'input', offset: pos(), type: 'input', parentId: 'n2' }],
+    []
+  )
+}
+
+test('execConnect never wires an outlet to a non-output param, even on a fuzzy substring match', () => {
+  // 'device' contains a 'v' but is a config param, not an audio output - it
+  // must never be treated as a valid match for outlet 'v'.
+  const c = execConnect(midiKeyboardInLikeGraph(), {action: 'connect', type: 'M1', outlet: 'v'}, ahrLikeGraph())
+  expect(length(c.edges)).toBe(1)
+  expect(valuesOf(c.edges)[0].src).toBe('p-velocity')
+})
+
+test('execConnect throws a recoverable CommandError when an outlet only matches a non-output param', () => {
+  const thrown = catchThrown(() =>
+    execConnect(midiKeyboardInLikeGraph(), {action: 'connect', type: 'M1', outlet: 'device'}, ahrLikeGraph())
+  )
+  expect(thrown).toBeInstanceOf(CommandError)
+})
+
+test('execConnect throws a recoverable CommandError when an inlet only matches a non-input param', () => {
+  const g1 = graphOf<Node, Param>(
+    [{ id: 'n1', name: 'osc', position: pos() }],
+    [{ id: 'p-output', dataType: 'number', name: 'output', offset: pos(), type: 'output', parentId: 'n1' }],
+    []
+  )
+
+  const g2 = graphOf<Node, Param>(
+    [{ id: 'n2', name: 'ahr', position: pos() }],
+    [
+      { id: 'p-attack', dataType: 'number', name: 'attack', offset: pos(), type: 'param', parentId: 'n2' },
+      { id: 'p-input', dataType: 'number', name: 'input', offset: pos(), type: 'input', parentId: 'n2' },
+    ],
+    []
+  )
+
+  const thrown = catchThrown(() =>
+    execConnect(g1, {action: 'connect', type: 'M1', inlet: 'attack'}, g2)
+  )
+  expect(thrown).toBeInstanceOf(CommandError)
+})
+
+test('execConnect still fans out an outlet across every output-type param it fuzzy-matches', () => {
+  // A loose single-character match against 'e' is expected to hit both
+  // outputs ('frequency' and 'velocity' both contain an 'e') - that's fine,
+  // as long as neither is the unrelated 'device' param.
+  const c = execConnect(midiKeyboardInLikeGraph(), {action: 'connect', type: 'M1', outlet: 'e'}, ahrLikeGraph())
+  expect(length(c.edges)).toBe(2)
+  expect(valuesOf(c.edges).map(e => e.src).sort()).toEqual(['p-frequency', 'p-velocity'])
+})
+
 test('exec', () => {
 
   const pos = () => ({x: 0, y: 0})
@@ -88,7 +179,7 @@ test('exec', () => {
 
     [
       {id: 'p1', dataType: 'number', name: 'output', offset: pos(), type: 'output', parentId: 'n1'},
-      {id: 'p2', dataType: 'number', name: 'input', offset: pos(), type: 'output', parentId: 'n2'},
+      {id: 'p2', dataType: 'number', name: 'input', offset: pos(), type: 'input', parentId: 'n2'},
     ],
     
     []

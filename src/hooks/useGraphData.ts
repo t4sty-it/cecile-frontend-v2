@@ -4,7 +4,7 @@ import { Param } from "@/data/Param";
 import { add, Point } from "@/data/Point";
 import { graphOf, union, valuesOf } from "@/lib/graph";
 import { exec } from "@/lib/lang";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { nodes as nodeConstructors } from '@/lib/commands/node/nodes'
 import { buildNode } from "@/lib/commands/node";
 import { useMousePosition } from "./useMousePosition";
@@ -14,6 +14,13 @@ export function useGraphData() {
   const [nodes, setNodes] = useState<Node[]>([])
   const [params, setParams] = useState<Param[]>([])
   const [edges, setEdges] = useState<Edge[]>([])
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (error === null) return
+    const timeout = setTimeout(() => setError(null), 5000)
+    return () => clearTimeout(timeout)
+  }, [error])
 
   const mousePosition = useMousePosition()
 
@@ -107,21 +114,28 @@ export function useGraphData() {
       params,
       edges.map(e => ({id: `${e.src.id}:${e.dst.id}`, src: e.src.id, dst: e.dst.id }))
     )
-    const diffGraph = exec(cmd, srcGraph, nodeBuilders, mousePosition, {})! // TODO remove when actually adding metaCommands
-    const [newNodes, newParams, newEdges] = valuesOf(union(srcGraph, diffGraph))
-    setNodes(newNodes)
-    setParams(newParams)
-    setEdges(newEdges.map(e => ({
-      src: newParams.find(p => p.id == e.src)!,
-      dst: newParams.find(p => p.id == e.dst)!
-    })))
-    
+
+    try {
+      const diffGraph = exec(cmd, srcGraph, nodeBuilders, mousePosition, {})! // TODO remove when actually adding metaCommands
+      const [newNodes, newParams, newEdges] = valuesOf(union(srcGraph, diffGraph))
+      setNodes(newNodes)
+      setParams(newParams)
+      setEdges(newEdges.map(e => ({
+        src: newParams.find(p => p.id == e.src)!,
+        dst: newParams.find(p => p.id == e.dst)!
+      })))
+      setError(null)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
+    }
   }
 
+  const clearError = () => setError(null)
+
   return {
-    nodes, params, edges,
+    nodes, params, edges, error,
     toggleConnection, moveNode, moveNodes,
     addNode, removeNode, updateParam,
-    execCommand,
+    execCommand, clearError,
   }
 }

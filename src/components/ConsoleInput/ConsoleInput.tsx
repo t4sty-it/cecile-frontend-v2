@@ -5,6 +5,7 @@ import { cssClasses } from '@/utils/cssClasses'
 
 interface ConsoleInputProps {
   hints?: string[],
+  error?: string | null,
   onInput?: (input: string) => void,
   onCommand?: (cmd: string) => void,
 }
@@ -13,6 +14,7 @@ interface ConsoleInputProps {
 const ConsoleInput = forwardRef<HTMLInputElement, ConsoleInputProps>(function(
   {
     hints,
+    error,
     onInput,
     onCommand,
   }: ConsoleInputProps,
@@ -80,6 +82,10 @@ const ConsoleInput = forwardRef<HTMLInputElement, ConsoleInputProps>(function(
             selected={hintSelected}
           />
         </div>
+      }
+
+      {error &&
+        <div className="console-input__error">{error}</div>
       }
     </form>
   )

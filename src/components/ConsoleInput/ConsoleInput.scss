@@ -23,4 +23,18 @@
       flex-direction: column-reverse;
     }
   }
+
+  &__error {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    width: 100%;
+    padding: 0.25em;
+
+    color: #ce2727;
+    font-weight: bold;
+    background: white;
+    border: 1px solid #ff6b6b;
+    font-size: 0.85em;
+  }
 }
