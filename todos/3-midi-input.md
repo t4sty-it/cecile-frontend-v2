@@ -1,5 +1,5 @@
 ---
-status: new
+status: done
 type: feature
 tags:
   - modules
