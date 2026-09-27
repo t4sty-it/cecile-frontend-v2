@@ -84,7 +84,7 @@ export function useGraphData() {
     }
   }) as Param
 
-  const execCommand = (cmd: string) => {
+  const execCommand = (cmd: string): boolean => {
 
     const nodeBuilders = Object.fromEntries(
       Object.keys(nodeConstructors)
@@ -125,8 +125,10 @@ export function useGraphData() {
         dst: newParams.find(p => p.id == e.dst)!
       })))
       setError(null)
+      return true
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
+      return false
     }
   }
 

@@ -1,9 +1,8 @@
 ---
-status: new
+status: done
 type: feature
 tags:
   - untagged
-
 ---
 # command history
 

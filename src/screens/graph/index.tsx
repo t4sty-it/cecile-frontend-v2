@@ -50,7 +50,7 @@ export default function GraphPage() {
   }, [graph.nodes, graph.params, graph.edges])
 
   const onCommand = (cmd: string) => {
-    graph.execCommand(cmd)
+    return graph.execCommand(cmd)
   }
   
   const [hints, setHints] = useState<string[]>([])

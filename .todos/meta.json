@@ -19,20 +19,20 @@
     "updatedAt": "2026-09-19T09:55:44+02:00",
     "id": "2",
     "title": "command history",
-    "status": "new",
+    "status": "done",
     "type": "feature",
     "tags": [
       "untagged"
     ]
   },
   "todos/3-midi-input.md": {
-    "blobSha": "9bc8c3664c5b3e9ef49ca689ce59db9f00b1e740",
+    "blobSha": "497187e22a0b20c37e3840606f3c57f000e37454",
     "schemaVersion": 5,
     "createdAt": "2026-09-19T09:55:44+02:00",
-    "updatedAt": "2026-09-19T09:55:44+02:00",
+    "updatedAt": "2026-09-27T14:51:16+02:00",
     "id": "3",
     "title": "midi input",
-    "status": "new",
+    "status": "done",
     "type": "feature",
     "tags": [
       "modules"
@@ -123,6 +123,19 @@
     "updatedAt": "2026-09-19T16:42:57+02:00",
     "id": "9",
     "title": "oscillator gain not working",
+    "status": "new",
+    "type": "bug",
+    "tags": [
+      "untagged"
+    ]
+  },
+  "todos/11-commands-are-not-trimmed.md": {
+    "blobSha": "7e1371349bb66b8c0c7b9d09ef5145895d880a47",
+    "schemaVersion": 5,
+    "createdAt": "2026-09-21T11:33:20+02:00",
+    "updatedAt": "2026-09-21T11:33:20+02:00",
+    "id": "11",
+    "title": "commands are not trimmed",
     "status": "new",
     "type": "bug",
     "tags": [

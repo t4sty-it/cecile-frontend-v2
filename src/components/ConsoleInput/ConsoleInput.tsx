@@ -7,7 +7,7 @@ interface ConsoleInputProps {
   hints?: string[],
   error?: string | null,
   onInput?: (input: string) => void,
-  onCommand?: (cmd: string) => void,
+  onCommand?: (cmd: string) => boolean | void,
 }
 
 
@@ -26,30 +26,67 @@ const ConsoleInput = forwardRef<HTMLInputElement, ConsoleInputProps>(function(
 
   const [focused, setFocused] = useState<boolean>(false)
 
+  // command history: entries are immutable, adjacent duplicates are compressed
+  const [history, setHistory] = useState<string[]>([])
+  const [historyIndex, setHistoryIndex] = useState<number | null>(null)
+  const [historyDraft, setHistoryDraft] = useState<string>('')
+
   const onSubmit: FormEventHandler<HTMLFormElement> = e => {
     e.preventDefault()
     e.stopPropagation()
-    onCommand && onCommand(command)
+    const success = onCommand ? onCommand(command) : true
+    if (success !== false && command.length > 0) {
+      setHistory(h => h.at(-1) === command ? h : [...h, command])
+    }
+    setHistoryIndex(null)
+    setHistoryDraft('')
     setCommand('')
+    onInput && onInput('')
   }
 
-  const onKeyDown: KeyboardEventHandler = e => {
-    e.stopPropagation()
-    if (hints) {
-      if (['ArrowUp', 'ArrowDown', 'Tab'].includes(e.code))
-        e.preventDefault()
-
-      switch(e.code){
-        case 'ArrowUp': setHintSelected(h => (h+1) % hints.length); break
-        case 'ArrowDown': setHintSelected(h => (h - 1 + hints.length) % hints!.length); break
-        case 'Tab': setCommand(hints[hintSelected] ?? ''); break
+  const navigateHistory = (direction: 'older' | 'newer') => {
+    if (direction === 'older') {
+      if (history.length === 0) return
+      if (historyIndex === null) {
+        setHistoryDraft(command)
+        setHistoryIndex(history.length - 1)
+        setCommand(history[history.length - 1])
+      } else if (historyIndex > 0) {
+        setHistoryIndex(historyIndex - 1)
+        setCommand(history[historyIndex - 1])
+      }
+    } else {
+      if (historyIndex === null) return
+      if (historyIndex < history.length - 1) {
+        setHistoryIndex(historyIndex + 1)
+        setCommand(history[historyIndex + 1])
+      } else {
+        setHistoryIndex(null)
+        setCommand(historyDraft)
       }
     }
   }
 
-  useEffect(() => {
-    onInput && onInput(command)
-  }, [command])
+  const onKeyDown: KeyboardEventHandler = e => {
+    e.stopPropagation()
+
+    switch (e.code) {
+      case 'ArrowUp': e.preventDefault(); navigateHistory('older'); break
+      case 'ArrowDown': e.preventDefault(); navigateHistory('newer'); break
+      case 'Tab':
+        if (hints && hints.length > 0) {
+          e.preventDefault()
+          setCommand(hints[hintSelected] ?? '')
+        }
+        break
+      case 'Escape':
+        if (hints && hints.length > 0) {
+          e.preventDefault()
+          onInput && onInput('')
+        }
+        break
+    }
+  }
 
   useEffect(() => {
     setHintSelected(0)
@@ -69,13 +106,17 @@ const ConsoleInput = forwardRef<HTMLInputElement, ConsoleInputProps>(function(
         ref={ref}
         name="command"
         value={command}
-        onInput={e => setCommand((e.target as any).value)}
+        onInput={e => {
+          const value = (e.target as HTMLInputElement).value
+          setCommand(value)
+          onInput && onInput(value)
+        }}
         onKeyDown={onKeyDown}
         onFocus={_ => setFocused(true)}
         onBlur={_ => setFocused(false)}
       />
 
-      {hints &&
+      {hints && hints.length > 0 &&
         <div className="console-input__hints">
           <AppSelect
             options={hints}
