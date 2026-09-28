@@ -11,6 +11,7 @@ import { clip } from "./clip"
 import { delay } from "./delay"
 import { display } from "./display"
 import { midiNodes } from "./midi"
+import { clock } from "./clock"
 
 export const nodes: Record<string, Node> = {
   oscillator,
@@ -23,5 +24,6 @@ export const nodes: Record<string, Node> = {
   clip,
   delay,
   display,
+  clock,
   ...midiNodes
 }
