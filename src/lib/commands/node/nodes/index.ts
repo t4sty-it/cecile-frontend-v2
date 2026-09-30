@@ -13,6 +13,8 @@ import { display } from "./display"
 import { midiNodes } from "./midi"
 import { clock } from "./clock"
 import { samphold } from "./samphold"
+import { quantizer } from "./quantizer"
+import { mtof } from "./mtof"
 
 export const nodes: Record<string, Node> = {
   oscillator,
@@ -27,5 +29,7 @@ export const nodes: Record<string, Node> = {
   display,
   clock,
   samphold,
+  quantizer,
+  mtof,
   ...midiNodes
 }
