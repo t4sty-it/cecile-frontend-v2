@@ -24,3 +24,10 @@ dist-ssr
 *.sw?
 
 .todos
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
