@@ -2,7 +2,7 @@ import { CustomAudioNode } from "../../custom";
 import { Node } from "../../node";
 import { createWorkletNode } from "../../worklet";
 
-import NoiseProcessorUrl from "./noise_processor?url";
+import NoiseProcessorUrl from "./noise_processor?worker&url";
 
 export const noise: Node = {
   params: () => [

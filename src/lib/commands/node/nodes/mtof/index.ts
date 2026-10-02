@@ -1,7 +1,7 @@
 import { CustomAudioNode } from "../../custom";
 import { Node } from "../../node";
 import { createWorkletNode } from "../../worklet";
-import MtofProcessorUrl from './mtof_processor?url';
+import MtofProcessorUrl from './mtof_processor?worker&url';
 
 export const mtof: Node = {
   params: () => [

@@ -1,7 +1,7 @@
 import { CustomAudioNode } from "../../custom";
 import { Node } from "../../node";
 import { createWorkletNode } from "../../worklet";
-import ClipProcessorUrl from './clip_processor?url'
+import ClipProcessorUrl from './clip_processor?worker&url'
 
 export const clip: Node = {
   params: () => [

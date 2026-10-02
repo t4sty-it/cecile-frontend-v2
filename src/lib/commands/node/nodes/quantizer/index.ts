@@ -1,7 +1,7 @@
 import { CustomAudioNode } from "../../custom";
 import { Node } from "../../node";
 import { createWorkletNode } from "../../worklet";
-import QuantizerProcessorUrl from './quantizer_processor?url';
+import QuantizerProcessorUrl from './quantizer_processor?worker&url';
 
 const SCALES: Record<string, number[]> = {
   major: [0, 2, 4, 5, 7, 9, 11],

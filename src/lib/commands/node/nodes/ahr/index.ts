@@ -1,7 +1,7 @@
 import { CustomAudioNode } from "../../custom";
 import { Node } from "../../node";
 import { createWorkletNode } from "../../worklet";
-import AhrProcessorUrl from './ahr_processor?url';
+import AhrProcessorUrl from './ahr_processor?worker&url';
 
 export const ahr: Node = {
   params: () => [

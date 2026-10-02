@@ -1,7 +1,7 @@
 import { CustomAudioNode } from "../../custom";
 import { Node } from "../../node";
 import { createWorkletNode } from "../../worklet";
-import ClockProcessorUrl from './clock_processor?url';
+import ClockProcessorUrl from './clock_processor?worker&url';
 
 export const clock: Node = {
 	params: () => [
