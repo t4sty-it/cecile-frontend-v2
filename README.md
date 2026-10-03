@@ -7,7 +7,7 @@ You place audio modules on a canvas and wire them together, like in any patcher.
 skip the mouse: a small command language lets you create, select and connect modules by typing
 short commands into a console.
 
-```
+```cecile
 osc > f > g > out
 ```
 
@@ -30,13 +30,13 @@ Press <kbd>Space</kbd> to focus the command line, type a command and hit <kbd>En
 
 ### Your first patch
 
-```
+```cecile
 oscillator > filter > gain > out
 ```
 
 **Every module name can be abbreviated.** Names are fuzzy-matched, so this does the same thing:
 
-```
+```cecile
 osc > f > g > out
 ```
 
@@ -44,13 +44,13 @@ osc > f > g > out
 
 Add `@name=value` after a module:
 
-```
+```cecile
 osc @shape=sawtooth @frequency=110 > f @frequency=800 @q=8 > g @gain=0.2 > out
 ```
 
 Parameter names, and values when they are strings, are also fuzzy-matched, so you can write also
 
-```
+```cecile
 osc @s=saw @f=110 > f @f=800 @q=8 > g @g=0.2 > out
 ```
 
@@ -60,7 +60,7 @@ Prefix a module with `<count>*`. Inside a parameter expression, `n` is the modul
 position in the batch (`z` is the 0-based one and `r` is a random number). Expressions support
 `+ - * / ^` and parentheses. This makes a four-partial additive organ:
 
-```
+```cecile
 4*osc @frequency=110*n > g @gain=0.1 > out
 ```
 
@@ -70,7 +70,7 @@ Give a module a label with `:label`. Use `$name` to select modules that **alread
 instead of creating new ones. Write `inlet{` after a connector to target an input other than
 the default one (or `}outlet` before it to pick an output):
 
-```
+```cecile
 osc:lfo @frequency=0.5 @gain=400 > freq{ $f
 ```
 
@@ -78,7 +78,10 @@ This adds a slow LFO and routes it into the existing filter's cutoff frequency.
 
 ### A small generative patch
 
-```
+Commands can span several lines (<kbd>Shift</kbd>+<kbd>Enter</kbd> starts a new one). The lines
+run in order, so `$sh` refers to the sample & hold created on the first line:
+
+```cecile
 noise > g:range @gain=12 > sh
 clock @bpm=240 > trigger{ $sh
 $sh > q @scale=pentatonic > mtof > frequency{ osc > g:vca @gain=0.2 > out
@@ -128,6 +131,9 @@ be asked for permission the first time.
 |-----|--------|
 | <kbd>Space</kbd> | Focus the command console |
 | <kbd>m</kbd> | Start MIDI learn |
+| <kbd>Enter</kbd> | Run the command in the console |
+| <kbd>Shift</kbd>+<kbd>Enter</kbd> | New line in the console |
+| <kbd>↑</kbd> / <kbd>↓</kbd> | Browse the command history (from the first / last line) |
 
 ## Development
 
@@ -190,7 +196,8 @@ The <kbd>?</kbd> button in the editor shows this README and the pages in `docs/`
 compiled to HTML at build time by a small Vite plugin (`plugins/markdown.ts`), and every
 `docs/<page>.md` becomes a page automatically. Write links as ordinary relative markdown links
 (`docs/language.md`, `modules.md#midi-input`): they work when browsing the repository, and the
-plugin rewrites them to in-app routes.
+plugin rewrites them to in-app routes. Tag runnable Cécile snippets as ` ```cecile ` blocks:
+in the app they get a "Try it" button that loads them into the console.
 
 ## Contributing
 

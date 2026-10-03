@@ -194,3 +194,73 @@ test('horizontalOffset', () => {
   expect(horizontalOffset(1).x).toBeGreaterThan(0)
   expect(horizontalOffset(1).x).toBeLessThan(horizontalOffset(2).x)
 })
+// builders with unique ids, an `input` and an `output` each
+function multilineBuilders(): Record<string, () => [Node, Param[]]> {
+  let count = 0
+  const builder = (name: string) => (): [Node, Param[]] => {
+    const id = `${name}${count++}`
+    return [
+      { id, name, position: pos() },
+      [
+        { id: `${id}.in`, dataType: 'signal', name: 'input', offset: pos(), type: 'input', parentId: id },
+        { id: `${id}.out`, dataType: 'signal', name: 'output', offset: pos(), type: 'output', parentId: id },
+      ]
+    ]
+  }
+  return { osc: builder('osc'), gain: builder('gain') }
+}
+
+const emptyGraph = () => graphOf<Node, Param>([], [], [])
+
+test('exec runs every line of a multi-line command', () => {
+  const result = exec('osc > gain\nosc', emptyGraph(), multilineBuilders(), p.of(0, 0), {})
+
+  expect(length(result.nodes)).toBe(3)
+  expect(length(result.edges)).toBe(1)
+})
+
+test('exec lets a selector see the nodes created by previous lines', () => {
+  const result = exec('osc:a\ngain > $osc:a', emptyGraph(), multilineBuilders(), p.of(0, 0), {})
+
+  expect(length(result.nodes)).toBe(2)
+  expect(valuesOf(result.edges)).toEqual([{ id: 'gain1.out:osc0.in', src: 'gain1.out', dst: 'osc0.in' }])
+})
+
+test('exec selectors never see nodes created by later lines', () => {
+  const result = exec('gain > $osc\nosc', emptyGraph(), multilineBuilders(), p.of(0, 0), {})
+
+  expect(length(result.edges)).toBe(0)
+})
+
+test('exec ignores blank lines and surrounding whitespace', () => {
+  const result = exec('\n  osc > gain  \n\n\t\ngain\n', emptyGraph(), multilineBuilders(), p.of(0, 0), {})
+
+  expect(length(result.nodes)).toBe(3)
+})
+
+test('exec throws on any failing line, so nothing is applied', () => {
+  const thrown = catchThrown(() => exec('osc > gain\nzzz', emptyGraph(), multilineBuilders(), p.of(0, 0), {}))
+
+  expect(thrown).toBeInstanceOf(CommandError)
+})
+
+test('exec places each line below the nodes created by the previous one', () => {
+  const result = exec('osc\ngain\n$osc > $gain\nosc', emptyGraph(), multilineBuilders(), p.of(10, 10), {})
+  const ys = valuesOf(result.nodes)
+    .toSorted((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }))
+    .map(node => node.position.y)
+
+  // creation order is osc0, gain1, osc2; the selector-only line doesn't move the origin
+  const [gain1, osc0, osc2] = ys
+  expect(osc0).toBe(10)
+  expect(gain1).toBeGreaterThan(osc0)
+  expect(osc2 - gain1).toBe(gain1 - osc0)
+})
+
+test('exec runs meta commands among other lines', () => {
+  const logged: string[][] = []
+  const result = exec('#log a b\nosc', emptyGraph(), multilineBuilders(), p.of(0, 0), { log: (...args) => { logged.push(args) } })
+
+  expect(logged).toEqual([['a', 'b']])
+  expect(length(result.nodes)).toBe(1)
+})

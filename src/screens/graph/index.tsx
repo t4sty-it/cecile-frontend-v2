@@ -1,5 +1,6 @@
 import AppGraph from "@/components/AppGraph/AppGraph";
-import ConsoleInput from "@/components/ConsoleInput/ConsoleInput";
+import ConsoleInput, { ConsoleInputHandle } from "@/components/ConsoleInput/ConsoleInput";
+import { DocsOutletContext } from "@/components/DocsOverlay/DocsOverlay";
 import HelpButton from "@/components/HelpButton/HelpButton";
 import MidiLearnButton from "@/components/MidiLearnButton/MidiLearnButton";
 import { Graph } from "@/data/Graph";
@@ -22,7 +23,7 @@ import './graph-page.scss'
 export default function GraphPage() {
 
   const [audioGraph, initialized] = useAudioGraph(project(nodes, n => n.build))
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef = useRef<ConsoleInputHandle>(null)
 
   const graph = useGraphData()
   const mousePositionRef = useMousePositionRef()
@@ -50,6 +51,10 @@ export default function GraphPage() {
       ))
     }
   }, [graph.nodes, graph.params, graph.edges])
+
+  const docsContext: DocsOutletContext = {
+    loadCommand: cmd => inputRef.current?.load(cmd)
+  }
 
   const onCommand = (cmd: string) => {
     return graph.execCommand(cmd)
@@ -106,7 +111,7 @@ export default function GraphPage() {
         error={graph.error}
       />
 
-      <Outlet/>
+      <Outlet context={docsContext}/>
     </div>
   )
 }

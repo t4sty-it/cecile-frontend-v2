@@ -1,3 +1,16 @@
+// A program is one command per line, executed in order. Blank lines are
+// allowed anywhere; whitespace inside a command never spans lines.
+Program
+= BlankLines head:HelpedCommand tail:(Newline BlankLines HelpedCommand)* BlankLines {
+	return [head, ...tail.map(t => t[2])]
+}
+
+Newline "newline"
+= _ ("\r\n" / "\n" / "\r")
+
+BlankLines
+= (_ Newline)* _
+
 HelpedCommand
 = cmd:(MetaCommand / Command) _ help:"?"? {
 	if (help) {
@@ -10,7 +23,7 @@ HelpedCommand
 }
 
 MetaCommand
-= "#" _ cmd:([^? ]*) args:([ ]+ MetaArg+)* {
+= "#" _ cmd:([^? \t\n\r]*) args:([ ]+ MetaArg+)* {
 	return {
     	action: "meta",
         target: cmd.reduce((a, x) => a + x),
@@ -136,11 +149,15 @@ Creator "creator"
 
 
 NodeDefinition "node definition"
-  = node:Identifier? label:Label? {
-    if (!node && !label) throw new Error("Expected identifier or label")
-  
+  = node:Identifier label:Label? {
   	return {
     	node,
+        label
+    }
+  }
+  / label:Label {
+  	return {
+    	node: null,
         label
     }
   }
@@ -160,4 +177,4 @@ Identifier "identifier"
   = [a-zA-Z_][a-zA-Z_-]* { return text() }
 
 _ "whitespace"
-  = [ \t\n\r]*
+  = [ \t]*

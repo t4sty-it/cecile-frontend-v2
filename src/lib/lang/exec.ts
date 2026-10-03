@@ -5,7 +5,7 @@ import { Point } from "@/data/Point";
 import { fuzzyFilter, fuzzyFind, reverseFuzzyFilter } from "@/utils/fuzzyFind";
 import * as g from '../graph';
 import * as s from '../set';
-import { /* HelpedCommand, */ MetaCommand, parse } from "./parser";
+import { HelpedCommand, MetaCommand, parse } from "./parser";
 
 type BaseTerm = {
     node: string | null,
@@ -33,7 +33,7 @@ type Connector = {
 const id = <T>(action: string) => (x: any): x is T => 
   Object.keys(x).includes('action') && (x as {action: any}).action === action
 
-// const isHelpedCommand = id<HelpedCommand>('help') // not implemented for now
+const isHelpedCommand = id<HelpedCommand>('help')
 const isMetaCommand = id<MetaCommand>('meta')
 const isCreator = id<Creator>('create')
 const isSelector = id<Selector>('select')
@@ -48,25 +48,61 @@ type Graph = g.Graph<Node, Param>
 // to a genuine programming error.
 export class CommandError extends Error {}
 
+// Executes a program of one or more lines and returns the diff to union into
+// `graph`. Lines run in order, each as if typed on its own: selectors in a
+// line also see the nodes created by the lines before it. Nothing is applied
+// unless every line succeeds, since the whole diff is returned at once.
 export function exec(
   command: string,
   graph: Graph,
   nodeBuilders: Record<string, () => [Node, Param[]]>,
   origin: Point,
   metaCommands: Record<string, (...args: string[]) => void>
-): Graph | null {
+): Graph {
 
-  // SELECT -> CREATE -> CONNECT
-  const parsed = parse(command)
-  
-  if (isMetaCommand(parsed)) {
-    execMeta(metaCommands, parsed)
-    return null
-  }
+  const lines = parse(command) as unknown[]
 
+  return lines.reduce<{ diff: Graph, origin: Point }>(
+    ({ diff, origin }, line) => {
+      if (isMetaCommand(line)) {
+        execMeta(metaCommands, line)
+        return { diff, origin }
+      }
 
-  const parsedTerms = parsed as (Term | Connector)[]
-  
+      if (isHelpedCommand(line))
+        throw new CommandError('Help (?) is not implemented yet')
+
+      const current = g.union(graph, diff)
+      const lineDiff = execLine(line as (Term | Connector)[], current, nodeBuilders, origin)
+
+      // the next line starts below the nodes this one created
+      const created = s.valuesOf(s.subtract(lineDiff.nodes, current.nodes))
+      const bottom = Math.max(0, ...created.map(node =>
+        node.position.y - origin.y + nodeHeight(paramsOf(lineDiff, node).length)
+      ))
+
+      return {
+        diff: g.union(diff, lineDiff),
+        origin: created.length ? p.add(origin, p.of(0, bottom + lineGap)) : origin,
+      }
+    },
+    { diff: g.graphOf<Node, Param>([], [], []), origin }
+  ).diff
+}
+
+const lineGap = 60
+
+function paramsOf(graph: Graph, node: Node): Param[] {
+  return s.valuesOf(graph.params).filter(param => param.parentId == node.id)
+}
+
+// SELECT -> CREATE -> CONNECT
+function execLine(
+  parsedTerms: (Term | Connector)[],
+  graph: Graph,
+  nodeBuilders: Record<string, () => [Node, Param[]]>,
+  origin: Point,
+): Graph {
   return parsedTerms
     .map(cmd => isSelector(cmd)
       ? execSelect(graph, cmd)
@@ -260,14 +296,17 @@ export function horizontalOffset(nodeIndex: number): Point {
 }
 
 export function verticalOffset(numParams: number, nodeIndex: number): Point {
-  const padding = 8
   const gap = 20
-  const paramHeight = 25
-
-  const nodeHeight = padding + (paramHeight * (numParams + 1))
 
   return p.of(
     0,
-    (nodeHeight + gap) * nodeIndex
+    (nodeHeight(numParams) + gap) * nodeIndex
   )
+}
+
+export function nodeHeight(numParams: number): number {
+  const padding = 8
+  const paramHeight = 25
+
+  return padding + (paramHeight * (numParams + 1))
 }

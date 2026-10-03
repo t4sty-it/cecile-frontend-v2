@@ -1,13 +1,16 @@
 .console-input {
-  input {
+  textarea {
+    display: block;
     width: 100%;
+    resize: none;
+    font: inherit;
 
     opacity: 0.8;
     transition: opacity 200ms ease-out;
   }
 
   &--focused {
-    input {
+    textarea {
       opacity: 1;
     }
   }

@@ -28,7 +28,7 @@ Path alias `@/*` maps to `src/*` (see `tsconfig.json` / `vite-tsconfig-paths`).
 This is the core feature of the app and spans several files under `src/lib/lang/`:
 
 1. **`grammar.pegjs`** — Peggy grammar defining the language syntax, compiled to `parser.ts` (do not hand-edit `parser.ts`; edit the grammar and run `bun run parser`).
-2. **`exec.ts`** — walks the parsed AST and turns it into graph mutations. A command is a sequence of terms separated by connectors, evaluated left to right as **SELECT → CREATE → CONNECT**.
+2. **`exec.ts`** — walks the parsed AST and turns it into graph mutations. The input is a program of newline-separated commands (start rule `Program`); lines run sequentially, each one SELECTing against the graph plus the diff of the lines above it, and each line placed below the previous one. Within a line, a command is a sequence of terms separated by connectors, evaluated left to right as **SELECT → CREATE → CONNECT**. The whole program yields one diff, so a failing line applies nothing. The grammar's `_` whitespace rule deliberately excludes newlines.
 
 Language shape (see the grammar for the authoritative syntax):
 - **Creator**: `<count>* <nodeType>[:label]` — e.g. `3*oscillator:lfo` creates 3 oscillator nodes labeled "lfo".
@@ -36,7 +36,7 @@ Language shape (see the grammar for the authoritative syntax):
 - **Connector**: `<`, `=`, `>` between two terms, meaning many-to-one / one-to-one / one-to-many respectively, e.g. `osc > gain` or `osc = gain`. An optional `label{` / `}label` around the connector targets a specific inlet/outlet (param) by fuzzy name instead of the default `input`/`output`.
 - **Params**: `@name=expr` after a term sets a node's param, e.g. `osc @frequency=440`. Param expressions support `+ - * / ^`, parens, and the special variables `n`/`z` (1-indexed / 0-indexed position within a batch of created nodes) and `r` (random), plus symbol values for string/option params.
 - **Meta commands**: `#name arg1 arg2` dispatch to a separate registry (`src/lib/commands/meta/`) instead of the graph (e.g. `#log`), and don't produce graph nodes.
-- Appending `?` to any command is parsed as a help request (`action: 'help'`) — not yet implemented in `exec.ts`.
+- Appending `?` to any command is parsed as a help request (`action: 'help'`) — not yet implemented: `exec.ts` throws a `CommandError` for it.
 
 Node/param matching for selectors and param assignment uses fuzzy matching (`src/utils/fuzzyFind.ts`), not exact string matching — this is intentional so short/abbreviated commands work.
 
@@ -59,7 +59,7 @@ Each node type (`src/lib/commands/node/nodes/*`) exports a `Node` (`{params, bui
 - `src/router.tsx` — two routes: `/` (splash) and `/graph` (the editor), the latter wrapped in `SelectionProvider`.
 - `src/contexts/store.tsx` — a generic `makeStore(builder)` factory (context + provider + `use()` hook) used to build small stores like `SelectionContext` (currently-selected node ids, used for multi-node drag/move).
 - `src/components/AppGraph/` — the canvas: renders nodes/edges, and owns mouse-driven interactions via two hooks: `useConnectionEvents` (dragging a wire between params) and `useSelectionEvents` (rubber-band multi-select).
-- `src/components/DocsOverlay/` — in-app docs, opened with the "?" button at `/graph/docs[/:page]` (a child route rendered over the editor, so the patch state survives). `README.md` and `docs/*.md` are compiled to HTML strings at build time by `plugins/markdown.ts` (relative `.md` links → routes, images bundled, links to other files reduced to text) and collected in `src/lib/docs.ts`.
+- `src/components/DocsOverlay/` — in-app docs, opened with the "?" button at `/graph/docs[/:page]` (a child route rendered over the editor, so the patch state survives). `README.md` and `docs/*.md` are compiled to HTML strings at build time by `plugins/markdown.ts` (relative `.md` links → routes, images bundled, links to other files reduced to text, ` ```cecile ` blocks get a "Try it" button that loads them into `ConsoleInput` via the outlet context) and collected in `src/lib/docs.ts`.
 - `src/components/ConsoleInput/` — the command-line input bar; shows fuzzy-matched autocomplete hints (against `lib/commands` node type names) and forwards submitted text to `execCommand`.
 
 ### Infra

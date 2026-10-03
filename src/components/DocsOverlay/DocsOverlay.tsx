@@ -1,7 +1,11 @@
 import { MouseEvent, useEffect, useRef } from "react"
-import { NavLink, useLocation, useNavigate, useParams } from "react-router-dom"
+import { NavLink, useLocation, useNavigate, useOutletContext, useParams } from "react-router-dom"
 import { docs } from "@/lib/docs"
 import './DocsOverlay.scss'
+
+export type DocsOutletContext = {
+  loadCommand: (command: string) => void
+}
 
 // Rendered over the graph page (as a child route) rather than as a page of
 // its own, so opening the docs doesn't unmount the editor and lose the patch
@@ -9,6 +13,7 @@ export default function DocsOverlay() {
   const { page = '' } = useParams()
   const { hash } = useLocation()
   const navigate = useNavigate()
+  const { loadCommand } = useOutletContext<DocsOutletContext>()
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const close = () => navigate('/graph')
@@ -25,10 +30,20 @@ export default function DocsOverlay() {
     else scrollRef.current?.scrollTo(0, 0)
   }, [page, hash])
 
-  // links in the compiled markdown are plain <a>s: route internal ones
-  // through the router instead of reloading the page
   const onClick = (e: MouseEvent) => {
-    const link = (e.target as HTMLElement).closest('a')
+    const target = e.target as HTMLElement
+
+    // "Try it" buttons on ```cecile snippets (see plugins/markdown.ts)
+    const snippet = target.closest('.docs-snippet__load')?.parentElement?.querySelector('code')
+    if (snippet) {
+      loadCommand(snippet.textContent ?? '')
+      close()
+      return
+    }
+
+    // links in the compiled markdown are plain <a>s: route internal ones
+    // through the router instead of reloading the page
+    const link = target.closest('a')
     if (!link || link.target) return
 
     const url = new URL(link.href)

@@ -1,7 +1,13 @@
 import { AppSelect } from '../AppSelect/AppSelect'
 import './ConsoleInput.scss'
-import { FormEventHandler, KeyboardEventHandler, forwardRef, useEffect, useState } from "react"
+import { FormEventHandler, KeyboardEventHandler, forwardRef, useEffect, useImperativeHandle, useRef, useState } from "react"
 import { cssClasses } from '@/utils/cssClasses'
+
+export interface ConsoleInputHandle {
+  focus: () => void,
+  // replaces the current text, e.g. with a snippet from the docs
+  load: (command: string) => void,
+}
 
 interface ConsoleInputProps {
   hints?: string[],
@@ -11,7 +17,7 @@ interface ConsoleInputProps {
 }
 
 
-const ConsoleInput = forwardRef<HTMLInputElement, ConsoleInputProps>(function(
+const ConsoleInput = forwardRef<ConsoleInputHandle, ConsoleInputProps>(function(
   {
     hints,
     error,
@@ -22,6 +28,7 @@ const ConsoleInput = forwardRef<HTMLInputElement, ConsoleInputProps>(function(
 ) {
 
   const [command, setCommand] = useState<string>('')
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [hintSelected, setHintSelected] = useState(-1)
 
   const [focused, setFocused] = useState<boolean>(false)
@@ -31,9 +38,17 @@ const ConsoleInput = forwardRef<HTMLInputElement, ConsoleInputProps>(function(
   const [historyIndex, setHistoryIndex] = useState<number | null>(null)
   const [historyDraft, setHistoryDraft] = useState<string>('')
 
-  const onSubmit: FormEventHandler<HTMLFormElement> = e => {
-    e.preventDefault()
-    e.stopPropagation()
+  useImperativeHandle(ref, () => ({
+    focus: () => textareaRef.current?.focus(),
+    load: (cmd: string) => {
+      setCommand(cmd)
+      setHistoryIndex(null)
+      onInput && onInput('')
+      textareaRef.current?.focus()
+    },
+  }), [onInput])
+
+  const submit = () => {
     const success = onCommand ? onCommand(command) : true
     if (success !== false && command.length > 0) {
       setHistory(h => h.at(-1) === command ? h : [...h, command])
@@ -42,6 +57,12 @@ const ConsoleInput = forwardRef<HTMLInputElement, ConsoleInputProps>(function(
     setHistoryDraft('')
     setCommand('')
     onInput && onInput('')
+  }
+
+  const onSubmit: FormEventHandler<HTMLFormElement> = e => {
+    e.preventDefault()
+    e.stopPropagation()
+    submit()
   }
 
   const navigateHistory = (direction: 'older' | 'newer') => {
@@ -67,12 +88,35 @@ const ConsoleInput = forwardRef<HTMLInputElement, ConsoleInputProps>(function(
     }
   }
 
-  const onKeyDown: KeyboardEventHandler = e => {
+  // in a multi-line command the arrows move between lines; they only browse
+  // the history from the first (up) or last (down) line
+  const onFirstLine = (el: HTMLTextAreaElement) => !el.value.slice(0, el.selectionStart).includes('\n')
+  const onLastLine = (el: HTMLTextAreaElement) => !el.value.slice(el.selectionEnd).includes('\n')
+
+  const onKeyDown: KeyboardEventHandler<HTMLTextAreaElement> = e => {
     e.stopPropagation()
 
     switch (e.code) {
-      case 'ArrowUp': e.preventDefault(); navigateHistory('older'); break
-      case 'ArrowDown': e.preventDefault(); navigateHistory('newer'); break
+      case 'Enter':
+      case 'NumpadEnter':
+        // shift+enter inserts a new line
+        if (!e.shiftKey) {
+          e.preventDefault()
+          submit()
+        }
+        break
+      case 'ArrowUp':
+        if (onFirstLine(e.currentTarget)) {
+          e.preventDefault()
+          navigateHistory('older')
+        }
+        break
+      case 'ArrowDown':
+        if (onLastLine(e.currentTarget)) {
+          e.preventDefault()
+          navigateHistory('newer')
+        }
+        break
       case 'Tab':
         if (hints && hints.length > 0) {
           e.preventDefault()
@@ -102,12 +146,14 @@ const ConsoleInput = forwardRef<HTMLInputElement, ConsoleInputProps>(function(
       onSubmit={onSubmit}
       className={className}
     >
-      <input
-        ref={ref}
+      <textarea
+        ref={textareaRef}
         name="command"
+        rows={command.split('\n').length}
+        spellCheck={false}
         value={command}
         onInput={e => {
-          const value = (e.target as HTMLInputElement).value
+          const value = (e.target as HTMLTextAreaElement).value
           setCommand(value)
           onInput && onInput(value)
         }}

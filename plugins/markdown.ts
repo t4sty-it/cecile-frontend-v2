@@ -60,6 +60,16 @@ export function markdown({ base }: { base: string }): Plugin {
             : inner
         },
 
+        // ```cecile blocks are runnable snippets: the docs overlay loads them
+        // into the console when their button is clicked
+        code({ text, lang }) {
+          if (lang != 'cecile') return false
+          return `<div class="docs-snippet">`
+            + `<pre><code class="language-cecile">${escapeHtml(text)}</code></pre>`
+            + `<button type="button" class="docs-snippet__load" title="Load into the console">Try it</button>`
+            + `</div>\n`
+        },
+
         image({ href, text }) {
           if (/^[a-z]+:/i.test(href))
             return `<img src="${escapeAttr(href)}" alt="${escapeAttr(text)}">`
@@ -100,4 +110,8 @@ function githubSlug(html: string): string {
 
 function escapeAttr(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
+}
+
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }

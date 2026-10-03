@@ -116,7 +116,7 @@ export function useGraphData() {
     )
 
     try {
-      const diffGraph = exec(cmd, srcGraph, nodeBuilders, mousePosition, {})! // TODO remove when actually adding metaCommands
+      const diffGraph = exec(cmd, srcGraph, nodeBuilders, mousePosition, {}) // TODO pass the actual metaCommands
       const [newNodes, newParams, newEdges] = valuesOf(union(srcGraph, diffGraph))
       setNodes(newNodes)
       setParams(newParams)

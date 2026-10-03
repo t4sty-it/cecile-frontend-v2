@@ -4,14 +4,14 @@ Cécile lets you build a patch by typing short commands into the console bar
 at the bottom of the editor, instead of (or alongside) placing modules and
 dragging wires with the mouse. New modules appear at the mouse position.
 
-```
+```cecile
 oscillator > filter > gain > out
 ```
 
 This creates four modules and wires each one into the next. Thanks to fuzzy
 matching, the same patch can be written as:
 
-```
+```cecile
 osc > f > g > out
 ```
 
@@ -41,6 +41,9 @@ modules are created, then connections are made. A command that refers to a
 module type that does not exist, or to an inlet/outlet that cannot be found,
 fails as a whole and shows an error in the console bar.
 
+A command can span several lines, one command per line (see
+[Multi-line commands](#multi-line-commands)).
+
 Two other command forms exist: **meta commands** (`#name args`) and the
 **`?` help suffix**, both described at the end of this page.
 
@@ -48,7 +51,7 @@ Two other command forms exist: **meta commands** (`#name args`) and the
 
 Name a module type to create one:
 
-```
+```cecile
 oscillator
 ```
 
@@ -57,7 +60,7 @@ oscillator
 Append `:label` to give the new module a label. Labels can later be used to
 select modules (see [Selecting modules](#selecting-modules)):
 
-```
+```cecile
 oscillator:vco
 ```
 
@@ -66,7 +69,7 @@ oscillator:vco
 Prefix `<count>*` to create several copies at once. All copies share the
 same label:
 
-```
+```cecile
 3*oscillator:vco
 ```
 
@@ -84,7 +87,7 @@ valid label; use something like `vco_b` instead.
 Prefix a term with `$` to refer to modules that already exist in the patch
 instead of creating new ones:
 
-```
+```cecile
 oscillator > $gain
 ```
 
@@ -98,7 +101,7 @@ $:mixer          # every module labelled "mixer", whatever its type
 $oscillator:vco  # every oscillator labelled "vco"
 ```
 
-```
+```cecile
 $oscillator:vco > $gain:mixer
 ```
 
@@ -133,20 +136,20 @@ right term is the destination.
 
 Connect three oscillators to a single gain:
 
-```
+```cecile
 3*oscillator > gain
 ```
 
 Connect each of three oscillators to both of two filters (six wires):
 
-```
+```cecile
 3*oscillator > 2*filter
 ```
 
 Connect the first two oscillators to one gain each, leaving the third
 unconnected:
 
-```
+```cecile
 3*oscillator = 2*gain
 ```
 
@@ -167,21 +170,21 @@ the connector:
 
 Modulate an existing oscillator's frequency with a new, slow oscillator:
 
-```
+```cecile
 oscillator:lfo @frequency=2 > frequency{ $oscillator:vco
 ```
 this wires the output of the lfo to the frequency of the vco.
 
 Trigger a sample-and-hold from a clock:
 
-```
+```cecile
 clock > trigger{ samphold
 ```
 
 Use both: route a MIDI keyboard's `velocity` outlet into the `gain` inlet of
 the gain labelled `amp`:
 
-```
+```cecile
 midi-keyboard-in }velocity > gain{ $gain:amp
 ```
 
@@ -198,7 +201,7 @@ Some modules have no outlet called `output` (MIDI input modules expose
 `frequency`, `velocity`, `value` and so on). Connecting from them without an
 explicit `}outlet` produces no wire, so name the outlet:
 
-```
+```cecile
 midi-keyboard-in }frequency > frequency{ oscillator
 ```
 
@@ -208,23 +211,52 @@ Connectors can be chained. Each connector links the two terms immediately
 around it, so a term in the middle is the destination of the previous
 connection and the source of the next one:
 
-```
+```cecile
 oscillator > filter > gain > out
 ```
 
 Every creator in a chain creates new modules. To route into a module that
 already exists (for example an `out` you created earlier), use a selector:
 
-```
+```cecile
 4*oscillator @frequency=110*2^z > gain:mix > $out
 ```
+
+## Multi-line commands
+
+Press <kbd>Shift</kbd>+<kbd>Enter</kbd> in the console to start a new line.
+Each line is a command of its own, and the lines run in order, exactly as if
+you had typed them one at a time. In particular, a selector sees the modules
+created by the lines above it, so you can build a patch step by step:
+
+```cecile
+noise > g:range @gain=12 > sh
+clock @bpm=240 > trigger{ $sh
+$sh > q @scale=pentatonic > mtof > frequency{ osc > g:vca @gain=0.2 > out
+```
+
+Here `$sh` on the second and third lines refers to the sample & hold created
+on the first one. A selector never sees modules created by lines *below* it.
+
+A few more rules:
+
+- Blank lines are ignored.
+- A single command can't be split across lines: `osc >` followed by `gain` on
+  the next line is a syntax error.
+- The whole block succeeds or fails together. If any line fails, nothing is
+  added to the patch, and the error tells you what went wrong.
+- Each line places its new modules below those of the previous line, so the
+  patch doesn't pile up under the mouse.
+- <kbd>↑</kbd> and <kbd>↓</kbd> move between lines; they only browse the
+  command history from the first or last line. A multi-line command is
+  stored in the history as a single entry.
 
 ## Params
 
 Follow a term with `@name=value` to set a param on the modules it creates.
 Several params can be chained, with or without spaces:
 
-```
+```cecile
 oscillator@frequency=220
 3*oscillator:supersaw @shape=saw @frequency=220+10*r
 ```
@@ -247,7 +279,7 @@ Numbers can be integers (`440`) or decimals (`0.5`, `.5`). A negative
 decimal can be written directly (`-0.5`), but a negative integer cannot:
 write `-3.0` or `0-3` instead of `-3`.
 
-```
+```cecile
 oscillator @frequency=(220+20)*2^2
 ```
 
@@ -258,7 +290,7 @@ Expressions can use three variables:
 - `n`: the position of the module within the batch being created, starting
   at 1.
 
-  ```
+  ```cecile
   3*oscillator @frequency=220*n
   ```
 
@@ -266,7 +298,7 @@ Expressions can use three variables:
 
 - `z`: the same position, starting at 0.
 
-  ```
+  ```cecile
   3*oscillator @frequency=110*2^z
   ```
 
@@ -275,7 +307,7 @@ Expressions can use three variables:
 - `r`: a random number in the range [0, 1), drawn separately for every
   module and every param.
 
-  ```
+  ```cecile
   3*oscillator @frequency=220+10*r
   ```
 
@@ -311,7 +343,7 @@ When several names qualify, the first one according to that order (and
 then the order modules are registered in) wins. For example, `f` creates a
 `filter` and `g` creates a `gain`:
 
-```
+```cecile
 osc > f > g > out
 ```
 
@@ -336,10 +368,12 @@ The only meta command currently defined is:
 |----------------|--------|
 | `#log args...` | Prints its arguments to the browser's developer console. |
 
+Meta commands can be mixed with other lines in a
+[multi-line command](#multi-line-commands).
+
 Note: the meta command registry is not yet wired into the console bar, so at
-the moment any meta command (including `#log`) prints
-`command not found` to the developer console, leaves the patch unchanged,
-and shows an error in the console bar.
+the moment any meta command (including `#log`) only prints
+`command not found` to the developer console and leaves the patch unchanged.
 
 ## Help (`?`)
 
