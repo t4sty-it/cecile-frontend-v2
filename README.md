@@ -15,8 +15,7 @@ That one line creates an oscillator, a filter, a gain and an output, and wires t
 
 **Try it live → [cecile.t4sty.it](https://cecile.t4sty.it)**
 
-<!-- TODO: replace with the final screenshot -->
-![Cécile screenshot](https://placehold.co/1200x675?text=Screenshot+coming+soon)
+![Cécile screenshot](docs/readme-screenshot.png)
 
 ## Features
 
