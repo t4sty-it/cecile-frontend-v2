@@ -1,0 +1,21 @@
+.help-button {
+  position: absolute;
+  top: 0.5em;
+  left: 0.5em;
+
+  display: grid;
+  place-content: center;
+  width: 1.5em;
+  height: 1.5em;
+
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  color: white;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 150ms;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+}

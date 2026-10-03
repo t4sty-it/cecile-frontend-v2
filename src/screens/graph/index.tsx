@@ -1,5 +1,6 @@
 import AppGraph from "@/components/AppGraph/AppGraph";
 import ConsoleInput from "@/components/ConsoleInput/ConsoleInput";
+import HelpButton from "@/components/HelpButton/HelpButton";
 import MidiLearnButton from "@/components/MidiLearnButton/MidiLearnButton";
 import { Graph } from "@/data/Graph";
 import { useGraphData } from "@/hooks/useGraphData";
@@ -13,6 +14,7 @@ import { MidiLearnResult } from "@/lib/midi/learn";
 import { project } from "@/lib/record";
 import { fuzzyFind } from "@/utils/fuzzyFind";
 import { useEffect, useRef, useState } from "react";
+import { Outlet } from "react-router-dom";
 import { useAudioGraph } from "@/hooks/useAudioGraph";
 
 import './graph-page.scss'
@@ -87,6 +89,8 @@ export default function GraphPage() {
         Cécile 2.0
       </div>
 
+      <HelpButton/>
+
       <MidiLearnButton
         learning={midiLearn.learning}
         start={midiLearn.start}
@@ -101,6 +105,8 @@ export default function GraphPage() {
         hints={hints}
         error={graph.error}
       />
+
+      <Outlet/>
     </div>
   )
 }

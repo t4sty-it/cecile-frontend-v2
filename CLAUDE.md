@@ -59,6 +59,7 @@ Each node type (`src/lib/commands/node/nodes/*`) exports a `Node` (`{params, bui
 - `src/router.tsx` — two routes: `/` (splash) and `/graph` (the editor), the latter wrapped in `SelectionProvider`.
 - `src/contexts/store.tsx` — a generic `makeStore(builder)` factory (context + provider + `use()` hook) used to build small stores like `SelectionContext` (currently-selected node ids, used for multi-node drag/move).
 - `src/components/AppGraph/` — the canvas: renders nodes/edges, and owns mouse-driven interactions via two hooks: `useConnectionEvents` (dragging a wire between params) and `useSelectionEvents` (rubber-band multi-select).
+- `src/components/DocsOverlay/` — in-app docs, opened with the "?" button at `/graph/docs[/:page]` (a child route rendered over the editor, so the patch state survives). `README.md` and `docs/*.md` are compiled to HTML strings at build time by `plugins/markdown.ts` (relative `.md` links → routes, images bundled, links to other files reduced to text) and collected in `src/lib/docs.ts`.
 - `src/components/ConsoleInput/` — the command-line input bar; shows fuzzy-matched autocomplete hints (against `lib/commands` node type names) and forwards submitted text to `execCommand`.
 
 ### Infra

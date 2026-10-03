@@ -16,7 +16,7 @@ osc > f > g > out
 ```
 
 This page is the reference for the language. For the list of available
-modules and what they do, see the [README](../README.md). The authoritative
+modules and what they do, see the [module reference](modules.md). The authoritative
 syntax is the grammar in
 [`src/lib/lang/grammar.pegjs`](../src/lib/lang/grammar.pegjs), and the
 semantics live in [`src/lib/lang/exec.ts`](../src/lib/lang/exec.ts).
