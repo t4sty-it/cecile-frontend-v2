@@ -3,6 +3,7 @@ import ConsoleInput, { ConsoleInputHandle } from "@/components/ConsoleInput/Cons
 import { DocsOutletContext } from "@/components/DocsOverlay/DocsOverlay";
 import HelpButton from "@/components/HelpButton/HelpButton";
 import MidiLearnButton from "@/components/MidiLearnButton/MidiLearnButton";
+import PaletteButton from "@/components/PaletteButton/PaletteButton";
 import { Graph } from "@/data/Graph";
 import { useGraphData } from "@/hooks/useGraphData";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
@@ -116,6 +117,8 @@ export default function GraphPage() {
         cancel={midiLearn.cancel}
         onLearned={onMidiLearned}
       />
+
+      <PaletteButton onClick={() => setPaletteOpen(true)}/>
 
       <ConsoleInput
         ref={inputRef}
