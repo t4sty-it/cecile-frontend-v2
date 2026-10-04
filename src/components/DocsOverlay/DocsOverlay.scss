@@ -1,4 +1,5 @@
-@import '../../style/colors.scss';
+@use 'sass:color';
+@use '../../style/colors' as *;
 
 .docs-overlay {
   position: fixed;
@@ -70,7 +71,7 @@
     padding: 1em 2.5em 3em;
 
     a {
-      color: darken($optimistic-blue, 10%);
+      color: color.adjust($optimistic-blue, $lightness: -10%);
     }
 
     h1, h2, h3 {

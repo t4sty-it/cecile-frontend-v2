@@ -214,7 +214,8 @@ export function execCreate(
   })
 
   const evalWithContext = (s: string, ctx: {idx: number}) =>
-    eval(`(() => { const z = ${ctx.idx}; const n = ${ctx.idx+1}; const r = ${Math.random()}; return (${s})})()`)
+    // indirect eval: the expression runs in global scope, it only needs z/n/r
+    (0, eval)(`(() => { const z = ${ctx.idx}; const n = ${ctx.idx+1}; const r = ${Math.random()}; return (${s})})()`)
   
 
   return [...Array(cmd.quantity ?? 1).keys()]
