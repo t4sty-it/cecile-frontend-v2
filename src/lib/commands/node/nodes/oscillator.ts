@@ -58,7 +58,7 @@ class Oscillator extends CustomAudioNode {
 
   constructor(actx: AudioContext) {
     super(actx)
-		const o = new OscillatorNode(actx)
+		const o = this.own(new OscillatorNode(actx))
     this.o = o
     this.o.start()
     this.o.connect(this.out)

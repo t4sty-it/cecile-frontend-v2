@@ -26,7 +26,7 @@ class Constant extends CustomAudioNode {
 
   constructor(actx: AudioContext) {
     super(actx)
-    this.c = new ConstantSourceNode(actx, {offset: 0})
+    this.c = this.own(new ConstantSourceNode(actx, {offset: 0}))
     this.c.start()
     this.c.connect(this.out)
 

@@ -1,4 +1,6 @@
-export class AhrProcessor extends AudioWorkletProcessor {
+import { DisposableProcessor } from "../../processor"
+
+export class AhrProcessor extends DisposableProcessor {
 
   private out: number = 0
 
@@ -47,7 +49,7 @@ export class AhrProcessor extends AudioWorkletProcessor {
             }
         }
 
-        return true
+        return this.alive
     }
 }
 

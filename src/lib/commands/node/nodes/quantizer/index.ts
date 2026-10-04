@@ -1,6 +1,5 @@
 import { CustomAudioNode } from "../../custom";
 import { Node } from "../../node";
-import { createWorkletNode } from "../../worklet";
 import QuantizerProcessorUrl from './quantizer_processor?worker&url';
 
 const SCALES: Record<string, number[]> = {
@@ -53,11 +52,11 @@ class Quantizer extends CustomAudioNode {
   constructor(actx: AudioContext) {
     super(actx)
 
-    this.offset = actx.createConstantSource()
+    this.offset = this.own(actx.createConstantSource())
     this.offset.offset.value = 60
     this.offset.start()
 
-    createWorkletNode(actx, 'quantizer-processor', QuantizerProcessorUrl, {
+    this.createWorklet('quantizer-processor', QuantizerProcessorUrl, {
       numberOfInputs: 1,
       numberOfOutputs: 1
     })

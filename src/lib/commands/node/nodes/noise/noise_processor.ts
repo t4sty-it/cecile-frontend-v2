@@ -1,4 +1,6 @@
-export class NoiseProcessor extends AudioWorkletProcessor {
+import { DisposableProcessor } from "../../processor"
+
+export class NoiseProcessor extends DisposableProcessor {
   process(_inputs: Float32Array[][], outputs: Float32Array[][], _parameters: Record<string, Float32Array>): boolean {
     const output = outputs[0];
     output.forEach((channel) => {
@@ -6,7 +8,7 @@ export class NoiseProcessor extends AudioWorkletProcessor {
         channel[i] = Math.random() * 2 - 1;
       }
     });
-    return true
+    return this.alive
   }
 }
 

@@ -1,6 +1,8 @@
+import { DisposableProcessor } from "../../processor"
+
 declare const sampleRate: number
 
-export class ClockProcessor extends AudioWorkletProcessor {
+export class ClockProcessor extends DisposableProcessor {
 
   private phase = 0
 
@@ -43,7 +45,7 @@ export class ClockProcessor extends AudioWorkletProcessor {
       this.phase = (this.phase + freq / sampleRate) % 1
     }
 
-    return true
+    return this.alive
   }
 }
 

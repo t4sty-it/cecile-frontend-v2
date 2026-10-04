@@ -1,4 +1,6 @@
-export class SampholdProcessor extends AudioWorkletProcessor {
+import { DisposableProcessor } from "../../processor"
+
+export class SampholdProcessor extends DisposableProcessor {
 
   private held: number = 0
   private armed: boolean = true
@@ -34,7 +36,7 @@ export class SampholdProcessor extends AudioWorkletProcessor {
       }
     }
 
-    return true
+    return this.alive
   }
 }
 

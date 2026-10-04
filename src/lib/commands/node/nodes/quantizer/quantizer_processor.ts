@@ -1,4 +1,6 @@
-export class QuantizerProcessor extends AudioWorkletProcessor {
+import { DisposableProcessor } from "../../processor"
+
+export class QuantizerProcessor extends DisposableProcessor {
 
   private scale: number[] = [0, 2, 4, 5, 7, 9, 11]
 
@@ -12,11 +14,8 @@ export class QuantizerProcessor extends AudioWorkletProcessor {
     ]
   }
 
-  constructor(opts: AudioWorkletNodeOptions | undefined) {
-    super(opts)
-    this.port.onmessage = (e: MessageEvent) => {
-      if (Array.isArray(e.data?.scale)) this.scale = e.data.scale
-    }
+  protected onMessage(data: { scale?: unknown }) {
+    if (Array.isArray(data?.scale)) this.scale = data.scale
   }
 
   // nearest integer to v whose (semitone mod 12) is one of this.scale's degrees;
@@ -56,7 +55,7 @@ export class QuantizerProcessor extends AudioWorkletProcessor {
       }
     }
 
-    return true
+    return this.alive
   }
 }
 

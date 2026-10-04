@@ -25,13 +25,14 @@ class Display extends CustomAudioNode {
   private analyser: AnalyserNode
   private data: Float32Array<ArrayBuffer>
   private lastValue?: number
+  private frame = 0
   private label = 'display'
   private readonly labelParam: AudioValue
 
   constructor(actx: AudioContext) {
     super(actx)
 
-    this.analyser = new AnalyserNode(actx, { fftSize: 32 })
+    this.analyser = this.own(new AnalyserNode(actx, { fftSize: 32 }))
     this.data = new Float32Array(this.analyser.fftSize)
     this.connect(this.analyser)
 
@@ -58,6 +59,11 @@ class Display extends CustomAudioNode {
       console.log(`${this.label}: ${value}`)
     }
 
-    requestAnimationFrame(this.poll)
+    this.frame = requestAnimationFrame(this.poll)
+  }
+
+  public dispose() {
+    cancelAnimationFrame(this.frame)
+    super.dispose()
   }
 }

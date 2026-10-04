@@ -1,6 +1,5 @@
 import { CustomAudioNode } from "../../custom";
 import { Node } from "../../node";
-import { createWorkletNode } from "../../worklet";
 
 import NoiseProcessorUrl from "./noise_processor?worker&url";
 
@@ -22,7 +21,7 @@ class Noise extends CustomAudioNode {
   constructor(actx: AudioContext) {
     super(actx)
 
-    createWorkletNode(actx, 'noise-processor', NoiseProcessorUrl)
+    this.createWorklet('noise-processor', NoiseProcessorUrl)
     .then((n) => {
       n.connect(this.out);
     })

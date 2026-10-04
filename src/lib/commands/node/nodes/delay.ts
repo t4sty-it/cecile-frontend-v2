@@ -31,7 +31,7 @@ class Delay extends CustomAudioNode {
 
   constructor(actx: AudioContext) {
     super(actx)
-    this.d = new DelayNode(actx, { maxDelayTime: 60, delayTime: 0 })
+    this.d = this.own(new DelayNode(actx, { maxDelayTime: 60, delayTime: 0 }))
     this.in.connect(this.d)
     this.d.connect(this.out)
     this.params = {

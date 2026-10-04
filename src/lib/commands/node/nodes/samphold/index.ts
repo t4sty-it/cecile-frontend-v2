@@ -1,6 +1,5 @@
 import { CustomAudioNode } from "../../custom";
 import { Node } from "../../node";
-import { createWorkletNode } from "../../worklet";
 import SampholdProcessorUrl from './samphold_processor?worker&url';
 
 export const samphold: Node = {
@@ -40,11 +39,11 @@ class SampleHold extends CustomAudioNode {
   constructor(actx: AudioContext) {
     super(actx)
 
-    this.threshold = actx.createConstantSource()
+    this.threshold = this.own(actx.createConstantSource())
     this.threshold.start()
-    this.trigger = actx.createGain()
+    this.trigger = this.own(actx.createGain())
 
-    createWorkletNode(actx, 'samphold-processor', SampholdProcessorUrl, {
+    this.createWorklet('samphold-processor', SampholdProcessorUrl, {
       numberOfInputs: 3,
       numberOfOutputs: 1
     })

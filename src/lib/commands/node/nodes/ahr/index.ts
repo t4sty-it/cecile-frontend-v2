@@ -1,6 +1,5 @@
 import { CustomAudioNode } from "../../custom";
 import { Node } from "../../node";
-import { createWorkletNode } from "../../worklet";
 import AhrProcessorUrl from './ahr_processor?worker&url';
 
 export const ahr: Node = {
@@ -41,16 +40,15 @@ class Ahr extends CustomAudioNode {
   constructor(actx: AudioContext) {
     super(actx)
 
-    this.attack = actx.createConstantSource()
+    this.attack = this.own(actx.createConstantSource())
     this.attack.start()
-    this.release = actx.createConstantSource()
+    this.release = this.own(actx.createConstantSource())
     this.release.start()
 
-    createWorkletNode(actx, 'ahr-processor', AhrProcessorUrl)
+    this.createWorklet('ahr-processor', AhrProcessorUrl)
     .then((n) => {
       this.in.connect(n)
       n.connect(this.out);
-      console.log({n})
 
       this.attack.connect(n.parameters.get('attack')!)
       this.release.connect(n.parameters.get('release')!)

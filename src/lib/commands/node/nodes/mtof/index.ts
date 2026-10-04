@@ -1,6 +1,5 @@
 import { CustomAudioNode } from "../../custom";
 import { Node } from "../../node";
-import { createWorkletNode } from "../../worklet";
 import MtofProcessorUrl from './mtof_processor?worker&url';
 
 export const mtof: Node = {
@@ -26,7 +25,7 @@ class Mtof extends CustomAudioNode {
   constructor(actx: AudioContext) {
     super(actx)
 
-    createWorkletNode(actx, 'mtof-processor', MtofProcessorUrl, {
+    this.createWorklet('mtof-processor', MtofProcessorUrl, {
       numberOfInputs: 1,
       numberOfOutputs: 1
     })

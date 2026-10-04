@@ -1,6 +1,5 @@
 import { CustomAudioNode } from "../../custom";
 import { Node } from "../../node";
-import { createWorkletNode } from "../../worklet";
 import ClockProcessorUrl from './clock_processor?worker&url';
 
 export const clock: Node = {
@@ -39,13 +38,13 @@ class Clock extends CustomAudioNode {
 	constructor(actx: AudioContext) {
 		super(actx)
 
-		this.bpm = actx.createConstantSource()
+		this.bpm = this.own(actx.createConstantSource())
 		this.bpm.start()
 
-		this.pulseWidth = actx.createConstantSource()
+		this.pulseWidth = this.own(actx.createConstantSource())
 		this.pulseWidth.start()
 
-		createWorkletNode(actx, 'clock-processor', ClockProcessorUrl)
+		this.createWorklet('clock-processor', ClockProcessorUrl)
 		.then(n => {
 			this.bpm.connect(n.parameters.get('bpm')!)
 			this.pulseWidth.connect(n.parameters.get('pulseWidth')!)

@@ -22,6 +22,7 @@ export abstract class MidiInputNode extends CustomAudioNode {
 
   private search = ''
   private input?: MIDIInput
+  private detached = false
   protected readonly deviceParam: AudioValue
 
   constructor(actx: AudioContext) {
@@ -35,7 +36,7 @@ export abstract class MidiInputNode extends CustomAudioNode {
 
     getMidiAccess()
       .then(access => {
-        access.addEventListener('statechange', () => this.attach())
+        access.addEventListener('statechange', this.attach)
         this.attach()
       })
       .catch(err => console.error('midi access unavailable', err))
@@ -44,7 +45,7 @@ export abstract class MidiInputNode extends CustomAudioNode {
   protected abstract onMidiMessage(message: MidiMessage): void
 
   protected createOutput(): ConstantSourceNode {
-    const c = new ConstantSourceNode(this.context)
+    const c = this.own(new ConstantSourceNode(this.context))
     c.start()
     return c
   }
@@ -73,8 +74,19 @@ export abstract class MidiInputNode extends CustomAudioNode {
     if (message) this.onMidiMessage(message)
   }
 
-  private attach() {
+  public dispose() {
+    this.detached = true
+    this.input?.removeEventListener('midimessage', this.handleMessage)
+    this.input = undefined
+    getMidiAccess()
+      .then(access => access.removeEventListener('statechange', this.attach))
+      .catch(() => {})
+    super.dispose()
+  }
+
+  private readonly attach = () => {
     getMidiAccess().then(access => {
+      if (this.detached) return
       if (this.input) this.input.removeEventListener('midimessage', this.handleMessage)
       this.input = findMidiInput(access, this.search)
       if (this.input) this.input.addEventListener('midimessage', this.handleMessage)

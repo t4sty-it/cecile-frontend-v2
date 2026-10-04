@@ -36,9 +36,13 @@ export class AudioGraph {
 
     this.ensureAudioContext()
     
-    this.reconcileNodes(setOf(graph.nodes, n => n.id))
+    const deletedNodes = this.reconcileNodes(setOf(graph.nodes, n => n.id))
     this.reconcileParams(setOf(graph.params, p => p.id))
     this.reconcileEdges(setOf(graph.edges, edgeId))
+
+    // only once their edges are gone: disconnecting an edge whose source
+    // dispose() already cut would throw
+    valuesOf(deletedNodes).forEach(n => unbox(n).dispose())
   }
 
   private ensureAudioContext() {
@@ -79,7 +83,7 @@ export class AudioGraph {
     this.updateParams(valuesOf(paramsToUpdate))
   }
 
-  private reconcileNodes(graphNodes: Set<Node>) {
+  private reconcileNodes(graphNodes: Set<Node>): Set<Box<CustomAudioNode>> {
     const nodesToCreate = subtract(graphNodes, this.nodes)
     const nodesCreated = setOf(
       valuesOf(nodesToCreate).map(n => this.createAudioNode(n)),
@@ -89,6 +93,7 @@ export class AudioGraph {
 
     const nodesToDelete = subtract(this.nodes, graphNodes)
     this.nodes = subtract(this.nodes, nodesToDelete)
+    return nodesToDelete
   }
 
   private updateParams(pairs: [Box<AudioParamValue>, Param][]) {

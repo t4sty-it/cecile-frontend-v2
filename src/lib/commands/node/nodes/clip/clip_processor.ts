@@ -1,4 +1,6 @@
-class ClipProcessor extends AudioWorkletProcessor {
+import { DisposableProcessor } from "../../processor"
+
+class ClipProcessor extends DisposableProcessor {
 
 	static get parameterDescriptors() {
 		return [
@@ -33,7 +35,7 @@ class ClipProcessor extends AudioWorkletProcessor {
 			}
 		}
 
-		return true
+		return this.alive
 	}
 }
 

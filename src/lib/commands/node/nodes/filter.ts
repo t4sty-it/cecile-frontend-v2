@@ -70,7 +70,7 @@ class Filter extends CustomAudioNode {
 
   constructor(actx: AudioContext) {
     super(actx)
-    this.f = new BiquadFilterNode(
+    this.f = this.own(new BiquadFilterNode(
       actx,
       {
         frequency: 440,
@@ -79,7 +79,7 @@ class Filter extends CustomAudioNode {
         gain: 0,
         type: 'lowpass'
       }
-    )
+    ))
 
     this.in.connect(this.f)
     this.f.connect(this.out)

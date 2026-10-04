@@ -1,6 +1,5 @@
 import { CustomAudioNode } from "../../custom";
 import { Node } from "../../node";
-import { createWorkletNode } from "../../worklet";
 import ClipProcessorUrl from './clip_processor?worker&url'
 
 export const clip: Node = {
@@ -41,10 +40,10 @@ class Clip extends CustomAudioNode {
   constructor(actx: AudioContext) {
     super(actx)
 
-    this.min = actx.createGain()
-    this.max = actx.createGain()
+    this.min = this.own(actx.createGain())
+    this.max = this.own(actx.createGain())
 
-    createWorkletNode(actx, 'clip-processor', ClipProcessorUrl)
+    this.createWorklet('clip-processor', ClipProcessorUrl)
     .then(n => {
       this.in.connect(n)
       n.connect(this.out)
