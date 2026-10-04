@@ -4,6 +4,7 @@ import { createWorkletNode } from "../../worklet";
 import AhrProcessorUrl from './ahr_processor?worker&url';
 
 export const ahr: Node = {
+  category: 'Control',
   params: () => [
     {
       name: 'input',

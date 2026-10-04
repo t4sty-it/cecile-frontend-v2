@@ -10,6 +10,7 @@ const SCALES: Record<string, number[]> = {
 }
 
 export const quantizer: Node = {
+  category: 'Control',
   params: () => [
     {
       name: 'input',

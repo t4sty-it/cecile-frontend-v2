@@ -2,6 +2,7 @@ import { CustomAudioNode } from "../custom";
 import { Node } from "../node";
 
 export const out: Node = {
+  category: 'Output',
   params: () => [
     {
       name: 'input',

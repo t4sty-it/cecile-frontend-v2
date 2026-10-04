@@ -4,6 +4,7 @@ import { createWorkletNode } from "../../worklet";
 import MtofProcessorUrl from './mtof_processor?worker&url';
 
 export const mtof: Node = {
+  category: 'Control',
   params: () => [
     {
       name: 'input',

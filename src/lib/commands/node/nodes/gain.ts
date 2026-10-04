@@ -2,6 +2,7 @@ import { CustomAudioNode } from "../custom";
 import { Node } from "../node";
 
 export const gain: Node = {
+  category: 'Processors',
   params: () => [
     {
       name: 'input',

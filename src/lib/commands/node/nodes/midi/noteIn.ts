@@ -3,6 +3,7 @@ import { MidiMessage, noteToFrequency, velocityToGain } from "@/lib/midi/message
 import { MidiInputNode, channelParamData, deviceParamData } from "./base"
 
 export const midiNoteIn: Node = {
+  category: 'MIDI',
   params: () => [
     deviceParamData,
     channelParamData,

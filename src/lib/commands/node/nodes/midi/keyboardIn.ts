@@ -3,6 +3,7 @@ import { MidiMessage, noteToFrequency, pitchBendToSemitones, velocityToGain } fr
 import { MidiInputNode, channelParamData, deviceParamData } from "./base"
 
 export const midiKeyboardIn: Node = {
+  category: 'MIDI',
   params: () => [
     deviceParamData,
     channelParamData,

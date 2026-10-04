@@ -4,6 +4,7 @@ import { createWorkletNode } from "../../worklet";
 import SampholdProcessorUrl from './samphold_processor?worker&url';
 
 export const samphold: Node = {
+  category: 'Control',
   params: () => [
     {
       name: 'input',

@@ -3,6 +3,7 @@ import { MidiMessage } from "@/lib/midi/message"
 import { MidiInputNode, deviceParamData } from "./base"
 
 export const midiSysMessageIn: Node = {
+  category: 'MIDI',
   params: () => [
     deviceParamData,
     { name: 'value', type: 'output', dataType: 'signal' },

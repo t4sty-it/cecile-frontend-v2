@@ -5,6 +5,7 @@ import { createWorkletNode } from "../../worklet";
 import NoiseProcessorUrl from "./noise_processor?worker&url";
 
 export const noise: Node = {
+  category: 'Sources',
   params: () => [
     {
       name: 'output',

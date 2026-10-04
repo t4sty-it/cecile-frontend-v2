@@ -4,6 +4,7 @@ import { createWorkletNode } from "../../worklet";
 import ClockProcessorUrl from './clock_processor?worker&url';
 
 export const clock: Node = {
+  category: 'Sources',
 	params: () => [
 		{
 			name: 'bpm',

@@ -17,6 +17,8 @@ import { fuzzyFind } from "@/utils/fuzzyFind";
 import { useEffect, useRef, useState } from "react";
 import { Outlet } from "react-router-dom";
 import { useAudioGraph } from "@/hooks/useAudioGraph";
+import CommandPalette from "@/components/CommandPalette/CommandPalette";
+import { usePlacement } from "@/hooks/usePlacement";
 
 import './graph-page.scss'
 
@@ -28,6 +30,17 @@ export default function GraphPage() {
   const graph = useGraphData()
   const mousePositionRef = useMousePositionRef()
   const midiLearn = useMidiLearn()
+  const [paletteOpen, setPaletteOpen] = useState(false)
+  const placement = usePlacement(graph.moveNode, graph.removeNode)
+
+  const onPaletteSelect = (nodeType: string) => {
+    const [node, params] = buildNode(nodeType, {
+      nodeOverrides: { name: nodeType, position: mousePositionRef.current }
+    })
+    graph.addNode(node, params)
+    setPaletteOpen(false)
+    placement.start(node.id)
+  }
 
   const onMidiLearned = ({ nodeType, paramOverrides }: MidiLearnResult) => {
     const [node, params] = buildNode(nodeType, {
@@ -40,6 +53,7 @@ export default function GraphPage() {
   useKeyboardShortcuts([
     [['Space'], _ => inputRef.current?.focus()],
     [['m'], () => midiLearn.start(onMidiLearned)],
+    [['p'], () => setPaletteOpen(true)],
   ])
 
   useEffect(() => {
@@ -110,6 +124,10 @@ export default function GraphPage() {
         hints={hints}
         error={graph.error}
       />
+
+      {paletteOpen &&
+        <CommandPalette onSelect={onPaletteSelect} onClose={() => setPaletteOpen(false)}/>
+      }
 
       <Outlet context={docsContext}/>
     </div>

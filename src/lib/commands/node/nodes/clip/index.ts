@@ -4,6 +4,7 @@ import { createWorkletNode } from "../../worklet";
 import ClipProcessorUrl from './clip_processor?worker&url'
 
 export const clip: Node = {
+  category: 'Processors',
   params: () => [
     {
       name: 'input',
