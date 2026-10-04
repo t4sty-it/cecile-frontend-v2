@@ -8,7 +8,8 @@ export type MidiMessage =
   | { type: 'pitchbend', channel: number, value: number }
   | { type: 'system', status: number }
 
-export function parseMidiMessage(data: ArrayLike<number>): MidiMessage | null {
+export function parseMidiMessage(data: ArrayLike<number> | null): MidiMessage | null {
+  if (data == null) return null
   const status = data[0]
   if (status == null) return null
 

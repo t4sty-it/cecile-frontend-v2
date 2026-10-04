@@ -33,7 +33,7 @@
     "marked": "^18.0.14",
     "peggy": "^3.0.2",
     "ts-pegjs": "^4.2.1",
-    "typescript": "^5.0.2",
+    "typescript": "~5.9",
     "vite": "^4.4.5"
   }
 }

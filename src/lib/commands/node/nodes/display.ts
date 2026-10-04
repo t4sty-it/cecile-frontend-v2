@@ -22,7 +22,7 @@ export const display: Node = {
 class Display extends CustomAudioNode {
 
   private analyser: AnalyserNode
-  private data: Float32Array
+  private data: Float32Array<ArrayBuffer>
   private lastValue?: number
   private label = 'display'
   private readonly labelParam: AudioValue
