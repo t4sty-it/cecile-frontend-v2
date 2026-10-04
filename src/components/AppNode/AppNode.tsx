@@ -1,5 +1,6 @@
 import { useSelectionStore } from '@/contexts/SelectionContext'
 import { Point } from '@/data/Point'
+import { useLatest } from '@/hooks/useLatest'
 import { cssClasses } from '@/utils/cssClasses'
 import { CSSProperties, ReactNode, useEffect, useRef, useState } from 'react'
 import './AppNode.scss'
@@ -40,7 +41,6 @@ export default function AppNode({
     }
     setDragging(true)
   }
-  const stopDrag = () => setDragging(false)
   const drag = (e: MouseEvent) => {
     const cur: Point = {
       x: e.clientX + offset.x,
@@ -56,21 +56,20 @@ export default function AppNode({
     prev.current = {...cur}
     
   }
+  const dragRef = useLatest(drag)
   useEffect(() => {
-    if (dragging) {
-      window.addEventListener('mousemove', drag)
-      window.addEventListener('mouseup', stopDrag)
-    }
-    else {
-      window.removeEventListener('mousemove', drag)
-      window.removeEventListener('mouseup', stopDrag)
-    }
+    if (!dragging) return
+
+    const onMouseMove = (e: MouseEvent) => dragRef.current(e)
+    const stopDrag = () => setDragging(false)
+    window.addEventListener('mousemove', onMouseMove)
+    window.addEventListener('mouseup', stopDrag)
 
     return () => {
-      window.removeEventListener('mousemove', drag)
+      window.removeEventListener('mousemove', onMouseMove)
       window.removeEventListener('mouseup', stopDrag)
     }
-  }, [dragging])
+  }, [dragging, dragRef])
 
 
   const {nodes} = useSelectionStore()

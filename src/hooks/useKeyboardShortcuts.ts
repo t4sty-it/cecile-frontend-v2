@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react"
+import { useLatest } from "./useLatest"
 
 type Char = 'q'|'w'|'e'|'r'|'t'|'y'|'u'|'i'|'o'|'p'|'a'|'s'|'d'|'f'|'g'|'h'|'j'|'k'|'l'|'z'|'x'|'c'|'v'|'b'|'n'|'m'
 
@@ -57,12 +58,14 @@ export function useKeyboardShortcuts(shortcuts: [Shortcut, (e: KeyboardEvent) =>
     }
   }
 
+  const applyShortcutsRef = useLatest(applyShortcuts)
   useEffect(() => {
+    const onKeyUp = (e: KeyboardEvent) => applyShortcutsRef.current(e)
     window.addEventListener('keydown', addKey)
-    window.addEventListener('keyup', applyShortcuts)
+    window.addEventListener('keyup', onKeyUp)
     return () => {
-      window.removeEventListener('keyup', applyShortcuts)
+      window.removeEventListener('keyup', onKeyUp)
       window.removeEventListener('keydown', addKey)
     }
-  }, [])
+  }, [applyShortcutsRef])
 }

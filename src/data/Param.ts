@@ -20,7 +20,7 @@ export interface ParamData {
   max?: number
 }
 
-export function isParamData(obj: Object): obj is ParamData {
+export function isParamData(obj: object): obj is ParamData {
   return hasKeyOfType<Param>(obj, 'name', 'string') &&
     hasKeyOfType<Param>(obj, 'type', 'string') &&
     hasKeyOfType<Param>(obj, 'dataType', 'string')
@@ -31,7 +31,7 @@ export interface NumberParamData extends ParamData {
   dataType: 'number'
 }
 
-export function isNumberParamData(obj: Object): obj is NumberParamData {
+export function isNumberParamData(obj: object): obj is NumberParamData {
   return isParamData(obj) &&
     obj.dataType == 'number' &&
     typeof obj.value == 'number'  
@@ -42,7 +42,7 @@ export interface StringParamData extends ParamData {
   dataType: 'string'
 }
 
-export function isStringParamData(obj: Object): obj is StringParamData {
+export function isStringParamData(obj: object): obj is StringParamData {
   return isParamData(obj) &&
     obj.dataType == 'string' &&
     typeof obj.value == 'string'
@@ -53,12 +53,12 @@ export interface ParamOption {
   label: string
 }
 
-function hasKeyOfType<T>(obj: Object, name: keyof T & string, type: string) {
+function hasKeyOfType<T>(obj: object, name: keyof T & string, type: string) {
   return Object.keys(obj).includes(name) &&
     typeof obj[name as keyof typeof obj] === type
 }
 
-export function isParam(p: Object): p is Param {
+export function isParam(p: object): p is Param {
   return (
     hasKeyOfType<Param>(p, 'id', 'string') &&
     hasKeyOfType<Param>(p, 'name', 'string') &&

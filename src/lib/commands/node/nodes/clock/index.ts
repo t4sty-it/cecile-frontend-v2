@@ -46,8 +46,8 @@ class Clock extends CustomAudioNode {
 
 		createWorkletNode(actx, 'clock-processor', ClockProcessorUrl)
 		.then(n => {
-			this.bpm.connect((n.parameters as any).get('bpm'))
-			this.pulseWidth.connect((n.parameters as any).get('pulseWidth'))
+			this.bpm.connect(n.parameters.get('bpm')!)
+			this.pulseWidth.connect(n.parameters.get('pulseWidth')!)
 			n.connect(this.out)
 		})
 

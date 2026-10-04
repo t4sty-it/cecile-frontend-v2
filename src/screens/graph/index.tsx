@@ -50,7 +50,7 @@ export default function GraphPage() {
         graph.edges,
       ))
     }
-  }, [graph.nodes, graph.params, graph.edges])
+  }, [initialized, audioGraph, graph.nodes, graph.params, graph.edges])
 
   const docsContext: DocsOutletContext = {
     loadCommand: cmd => inputRef.current?.load(cmd)

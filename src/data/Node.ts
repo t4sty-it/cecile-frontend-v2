@@ -7,7 +7,7 @@ export interface Node {
   position: Point
 }
 
-export function isNode(n: Object): n is Node {
+export function isNode(n: object): n is Node {
 
   const kk = Object.keys(n)
 

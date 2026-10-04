@@ -5,7 +5,7 @@ export interface Edge {
   dst: Param
 }
 
-export function isEdge(e: Object): e is Edge {
+export function isEdge(e: object): e is Edge {
   const kk = Object.keys(e)
   return ['src', 'dst'].every(k => 
     kk.includes(k) &&

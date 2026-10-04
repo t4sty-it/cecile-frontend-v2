@@ -13,7 +13,8 @@ Package manager is **bun** (see `bun.lockb`, `shell.nix` provides `bun` + `curl`
 - `bun install` — install deps
 - `bun run dev` — start Vite dev server
 - `bun run build` — typecheck (`tsc`) then `vite build`
-- `bun run lint` — ESLint over `src/**/*.{ts,tsx}` (zero warnings allowed)
+- `bun run lint` — ESLint (flat config in `eslint.config.js`) over all `.ts`/`.tsx` files (zero warnings allowed)
+- `bun run lint:watch` — `scripts/lint-watch.ts`: re-runs ESLint on every `.ts`/`.tsx` change under `src/`, wrapping each run in `lint: started` / `lint: finished` lines. The `bun: lint watch` task in `.vscode/tasks.json` starts it on folder open and feeds the Problems panel through a background problem matcher (`base: "$eslint-stylish"` + `background.activeOnStart`/`beginsPattern`/`endsPattern` keyed on those lines — the property is `activeOnStart`, not `activeAtBeginning`). The ESLint extension alone only lints open files.
 - `bun test` — run all `*.test.ts` tests (uses `bun:test`, not vitest/jest)
 - `bun test src/lib/lang/exec.test.ts` — run a single test file
 - `bun run parser` — regenerate `src/lib/lang/parser.ts` from `src/lib/lang/grammar.pegjs` (must be re-run after editing the grammar; the generated parser is checked in)

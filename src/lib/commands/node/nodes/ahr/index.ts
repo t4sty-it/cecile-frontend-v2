@@ -51,8 +51,8 @@ class Ahr extends CustomAudioNode {
       n.connect(this.out);
       console.log({n})
 
-      this.attack.connect((n.parameters as any).get('attack'))
-      this.release.connect((n.parameters as any).get('release'))
+      this.attack.connect(n.parameters.get('attack')!)
+      this.release.connect(n.parameters.get('release')!)
     })
 
     this.params = ({

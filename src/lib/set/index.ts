@@ -72,7 +72,7 @@ export function innerJoin<X, Y>(a: Set<X>, b: Set<Y>): Set<[X, Y]> {
   return Object.fromEntries(
     Object.entries(outerJoin(a, b))
       .filter(([_, {_value: value}]) => value[0] != null && value[1] != null)
-      .map(e => e as [String, SetEntry<[X, Y]>])
+      .map(e => e as [string, SetEntry<[X, Y]>])
   )
 }
 

@@ -47,8 +47,8 @@ class Clip extends CustomAudioNode {
     .then(n => {
       this.in.connect(n)
       n.connect(this.out)
-      this.min.connect((n.parameters as any).get('min'))
-      this.max.connect((n.parameters as any).get('max'))
+      this.min.connect(n.parameters.get('min')!)
+      this.max.connect(n.parameters.get('max')!)
     })
 
     this.params = ({

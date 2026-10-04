@@ -3,7 +3,7 @@ export interface Point {
   y: number
 }
 
-export function isPoint(p: Object): p is Point {
+export function isPoint(p: object): p is Point {
   return ['x', 'y'].every(k => 
     Object.keys(p).includes(k) &&
     typeof p[k as keyof typeof p] === 'number'

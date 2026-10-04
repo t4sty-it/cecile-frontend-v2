@@ -1,19 +1,19 @@
 import { Set, setOf } from "../set"
 import * as set from '../set'
 
-export type Signed<T extends Object> = T & {id: string}
-export type Child<T extends Object> = Signed<T> & { parentId: string } 
+export type Signed<T extends object> = T & {id: string}
+export type Child<T extends object> = Signed<T> & { parentId: string } 
 
 export type Edge = Signed<{src: string, dst: string}>
 
-export type Graph<N extends Signed<Object>, P extends Child<Object>> = {
+export type Graph<N extends Signed<object>, P extends Child<object>> = {
   nodes: Set<N>,
   params: Set<P>,
   edges: Set<Edge>
 }
 
 export function graphOf
-<N extends Signed<Object>, P extends Child<Object>>
+<N extends Signed<object>, P extends Child<object>>
 (
   nodes: N[] | Set<N>,
   params: P[] | Set<P>,
@@ -33,7 +33,7 @@ export function graphOf
   }
 }
 
-export function union<N extends Signed<Object>, P extends Child<Object>>(a: Graph<N, P>, b: Graph<N, P>): Graph<N, P> {
+export function union<N extends Signed<object>, P extends Child<object>>(a: Graph<N, P>, b: Graph<N, P>): Graph<N, P> {
   return graphOf(
     set.union(a.nodes, b.nodes),
     set.union(a.params, b.params),
@@ -43,7 +43,7 @@ export function union<N extends Signed<Object>, P extends Child<Object>>(a: Grap
 
 type FilterFunc<T> = (item: T, idx: number, arr: T[]) => boolean 
 export function filter
-<N extends Signed<Object>, P extends Child<Object>>
+<N extends Signed<object>, P extends Child<object>>
 (
   graph: Graph<N, P>,
   nodeFilter: FilterFunc<N>,
@@ -58,11 +58,11 @@ export function filter
   )
 }
 
-export function parentNode<N extends Signed<Object>, P extends Child<Object>>(graph: Graph<N, P>, param: P): N | null {
+export function parentNode<N extends Signed<object>, P extends Child<object>>(graph: Graph<N, P>, param: P): N | null {
   return set.valueOf(graph.nodes, param.parentId)
 }
 
-export function valuesOf<N extends Signed<Object>, P extends Child<Object>>(graph: Graph<N, P>): [N[], P[], Edge[]] {
+export function valuesOf<N extends Signed<object>, P extends Child<object>>(graph: Graph<N, P>): [N[], P[], Edge[]] {
   return [
     set.valuesOf(graph.nodes),
     set.valuesOf(graph.params),

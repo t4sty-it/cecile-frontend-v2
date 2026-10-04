@@ -30,8 +30,8 @@ type Connector = {
   outlet?: string,
 }
 
-const id = <T>(action: string) => (x: any): x is T => 
-  Object.keys(x).includes('action') && (x as {action: any}).action === action
+const id = <T>(action: string) => (x: unknown): x is T =>
+  typeof x === 'object' && x !== null && 'action' in x && x.action === action
 
 const isHelpedCommand = id<HelpedCommand>('help')
 const isMetaCommand = id<MetaCommand>('meta')

@@ -63,7 +63,7 @@ class Quantizer extends CustomAudioNode {
     .then(n => {
       this.worklet = n
       this.in.connect(n, 0, 0)
-      this.offset.connect((n.parameters as any).get('offset'))
+      this.offset.connect(n.parameters.get('offset')!)
       n.connect(this.out)
       n.port.postMessage({ scale: SCALES[this.scaleName] })
     })
