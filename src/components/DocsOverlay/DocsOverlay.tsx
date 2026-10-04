@@ -62,6 +62,7 @@ export default function DocsOverlay() {
           <NavLink to="/graph/docs" end>Readme</NavLink>
           <NavLink to="/graph/docs/language">Language</NavLink>
           <NavLink to="/graph/docs/modules">Modules</NavLink>
+          <NavLink to="/graph/docs/shortcuts">Shortcuts</NavLink>
           <button className="docs-overlay__close" title="Close (Esc)" onClick={close}>×</button>
         </nav>
 
