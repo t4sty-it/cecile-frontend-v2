@@ -1,16 +1,20 @@
 import { Graph } from "@/data/Graph"
-import { Param, isNumberParamData, isStringParamData } from "@/data/Param"
+import { Param, isNumberParamData, isStringParamData, isFileParamData } from "@/data/Param"
 import { setOf, subtract, innerJoin, valuesOf, valueOf, union, Set, length } from "@/lib/set"
 import { Node } from "@/data/Node"
 import { Box, boxOf, unbox } from "@/lib/box"
 import { Edge } from "@/data/Edge"
-import { AudioValue, CustomAudioNode } from "../commands/node/custom"
+import { AudioValue, AudioFileValue, CustomAudioNode } from "../commands/node/custom"
 
 
 export type NodeBuilderFunc = (actx: AudioContext) => CustomAudioNode
 const edgeId = (edge: Edge) => `${edge.src.id}:${edge.dst.id}`
 
-type AudioParamValue = AudioNode | AudioParam | AudioValue
+type AudioParamValue = AudioNode | AudioParam | AudioValue | AudioFileValue
+
+function isAudioFileValue(v: unknown): v is AudioFileValue {
+  return typeof v == 'object' && v != null && 'setFile' in v
+}
 type AudioEdge = {src: AudioNode | AudioParam, dst: AudioNode | AudioParam}
 
 export class AudioGraph {
@@ -24,6 +28,7 @@ export class AudioGraph {
   private nodes = setOf<Box<CustomAudioNode>>([], () => '')
   private params = setOf<Box<AudioParamValue>>([], () => '')
   private edges = setOf<Box<AudioEdge>>([], () => '')
+  private lastFiles = new Map<string, File>()
 
   public init() {
     if (this.actx == null) {
@@ -66,6 +71,7 @@ export class AudioGraph {
     const paramsToDelete = subtract(this.params, graphParams)
     if (length(paramsToDelete) > 0)
       console.log(`deleting ${length(paramsToDelete)} params`)
+    valuesOf(paramsToDelete).forEach(p => this.lastFiles.delete(p.id))
     this.params = subtract(this.params, paramsToDelete)
 
     const paramsToCreate = subtract(graphParams, this.params)
@@ -121,9 +127,21 @@ export class AudioGraph {
         throw 'Trying to set value of an audio param to a string'
       if (audioParam instanceof AudioNode)
         throw 'Trying to set value of an audio node to a string'
-      if (audioParam.value != param.value) {
+      if ('value' in audioParam && audioParam.value != param.value) {
         audioParam.value = param.value
         console.log('Update string param to', param.value)
+      }
+    }
+    if (isFileParamData(param)) {
+      if (!isAudioFileValue(audioParam)) throw 'Cannot set file value of non-file audio param'
+
+      // prevent re-decoding/re-posting the same file on every reconcile
+      // (updateParam runs for every still-live param, not just changed ones)
+      const prev = this.lastFiles.get(param.id)
+      const file = param.value
+      if (prev?.name != file.name || prev?.size != file.size || prev?.lastModified != file.lastModified) {
+        this.lastFiles.set(param.id, file)
+        audioParam.setFile(file)
       }
     }
   }
@@ -134,7 +152,7 @@ export class AudioGraph {
     return boxOf(an, gn.id)
   }
 
-  private createAudioParams(params: Param[]): Box<AudioParam | AudioNode | AudioValue>[] {
+  private createAudioParams(params: Param[]): Box<AudioParamValue>[] {
     return params
     .map(param => {
       const audioNode = valueOf(this.nodes, param.parentId)?.value

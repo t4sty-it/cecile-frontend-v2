@@ -66,7 +66,7 @@ export function useGraphData() {
     setEdges(edges => edges.filter(edge => edge.src.parentId != id && edge.dst.parentId != id))
   }
 
-  const updateParam = (id: string, value: string | number) => {
+  const updateParam = (id: string, value: string | number | File) => {
     setParams(params => params.map(param => param.id == id
       ? ({
         ...param,

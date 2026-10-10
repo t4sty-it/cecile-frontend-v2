@@ -23,3 +23,6 @@ declare function registerProcessor(
     parameterDescriptors?: AudioParamDescriptor[];
   }
 );
+
+// AudioWorkletGlobalScope's sample rate, only meaningful inside *_processor.ts files
+declare const sampleRate: number;

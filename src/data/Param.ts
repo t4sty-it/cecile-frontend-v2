@@ -11,9 +11,9 @@ export type Param = ParamData & Id & ParentId & Offset
 
 export interface ParamData {
   name: string
-  value?: number | string
+  value?: number | string | File
   type: 'input' | 'output' | 'param'
-  dataType: 'number' | 'string' | 'signal'
+  dataType: 'number' | 'string' | 'signal' | 'file'
   options?: ParamOption[]
   dynamicOptions?: 'midi-input-device'
   min?: number
@@ -46,6 +46,17 @@ export function isStringParamData(obj: object): obj is StringParamData {
   return isParamData(obj) &&
     obj.dataType == 'string' &&
     typeof obj.value == 'string'
+}
+
+export interface FileParamData extends ParamData {
+  value: File,
+  dataType: 'file'
+}
+
+export function isFileParamData(obj: object): obj is FileParamData {
+  return isParamData(obj) &&
+    obj.dataType == 'file' &&
+    obj.value instanceof File
 }
 
 export interface ParamOption {

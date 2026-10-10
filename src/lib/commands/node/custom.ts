@@ -5,6 +5,10 @@ export interface AudioValue {
   set value(v: string)
 }
 
+export interface AudioFileValue {
+  setFile(file: File): void
+}
+
 export class CustomAudioNode extends GainNode {
 
   protected in!: GainNode
@@ -23,7 +27,7 @@ export class CustomAudioNode extends GainNode {
     this.connect = this.out.connect
   }
 
-  public params: Record<string, AudioValue | AudioParam | AudioNode> = {}
+  public params: Record<string, AudioValue | AudioFileValue | AudioParam | AudioNode> = {}
 
   protected own<T extends AudioNode>(node: T): T {
     if (this.disposed) disposeAudioNode(node)

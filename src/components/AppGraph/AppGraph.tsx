@@ -26,7 +26,7 @@ export default function AppGraph({
   nodes: Node[],
   params: Param[],
   edges: Edge[],
-  onUpdateParam: (id: string, value: string | number) => void,
+  onUpdateParam: (id: string, value: string | number | File) => void,
   onMoveNodes: (nodeIds: string[], delta: Point) => void,
   onDeleteNode: (nodeId: string) => void,
   onToggleConnection: (src: Param, dst: Param) => void,
@@ -54,10 +54,12 @@ export default function AppGraph({
     onMoveNodes([node.id, ...selectedNodes], delta)
   }
 
-  const onParamChange = (param: Param) => (value: string) => {
+  const onParamChange = (param: Param) => (value: string | File) => {
     console.log(`Param ${param.name} changed to ${value}`)
     if (param.dataType == 'signal') throw 'Trying to update a signal param'
-    const castedValue = param.dataType == 'number' ? parseFloat(value) : value
+    const castedValue = param.dataType == 'number' && typeof value == 'string'
+      ? parseFloat(value)
+      : value
     onUpdateParam(param.id, castedValue)
   }
 
@@ -115,12 +117,13 @@ export default function AppGraph({
               <AppParam
                 key={param.id}
                 name={param.name}
-                value={param.value?.toString()}
+                value={param.dataType == 'file' ? (param.value as File | undefined)?.name : param.value?.toString()}
+                dataType={param.dataType}
                 options={param.dynamicOptions === 'midi-input-device'
                   ? midiInputNames.map(name => ({label: name, value: name}))
                   : param.options}
                 showInput={param.dataType != 'signal'}
-                connectable={param.type == 'input' && param.dataType != 'string'}
+                connectable={param.type == 'input' && param.dataType != 'string' && param.dataType != 'file'}
                 onMouseUp={() => endConnection(param)}
                 onChange={onParamChange(param)}
                 type='input'
