@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { nodes as nodeConstructors } from '@/lib/commands/node/nodes'
 import { buildNode } from "@/lib/commands/node";
 import { useMousePosition } from "./useMousePosition";
+import { descendantIds, groupNodes, ungroupNode } from "@/lib/group";
 
 export function useGraphData() {
 
@@ -45,13 +46,24 @@ export function useGraphData() {
   }
 
   const moveNodes = (ids: string[], delta: Point) => {
-    setNodes(nodes =>
-      nodes.map(node =>
-        ids.includes(node.id)
+    setNodes(nodes => {
+      const moved = descendantIds(nodes, ids)
+      return nodes.map(node =>
+        moved.includes(node.id)
           ? {...node, position: add(node.position, delta)}
-          : node 
+          : node
       )
-    )
+    })
+  }
+
+  const group = (ids: string[], parentId: string | undefined): string => {
+    const groupId = '' + Math.random()
+    setNodes(nodes => groupNodes(nodes, ids, parentId, groupId))
+    return groupId
+  }
+
+  const ungroup = (groupId: string) => {
+    setNodes(nodes => ungroupNode(nodes, groupId))
   }
 
   const addNode = (node: Node, params: Param[]) => {
@@ -61,9 +73,11 @@ export function useGraphData() {
   }
 
   const removeNode = (id: string) => {
-    setNodes(nodes => nodes.filter(node => node.id != id))
-    setParams(params => params.filter(param => param.parentId != id))
-    setEdges(edges => edges.filter(edge => edge.src.parentId != id && edge.dst.parentId != id))
+    const removed = descendantIds(nodes, [id])
+    setNodes(nodes => nodes.filter(node => !removed.includes(node.id)))
+    setParams(params => params.filter(param => !removed.includes(param.parentId)))
+    setEdges(edges => edges.filter(edge =>
+      !removed.includes(edge.src.parentId) && !removed.includes(edge.dst.parentId)))
   }
 
   const updateParam = (id: string, value: string | number | File) => {
@@ -84,7 +98,7 @@ export function useGraphData() {
     }
   }) as Param
 
-  const execCommand = (cmd: string): boolean => {
+  const execCommand = (cmd: string, parentId?: string): boolean => {
 
     const nodeBuilders = Object.fromEntries(
       Object.keys(nodeConstructors)
@@ -96,7 +110,8 @@ export function useGraphData() {
             {
               nodeOverrides: {
                 name: name,
-                position: mousePosition
+                position: mousePosition,
+                parentId,
               }
             }
           )
@@ -138,6 +153,7 @@ export function useGraphData() {
     nodes, params, edges, error,
     toggleConnection, moveNode, moveNodes,
     addNode, removeNode, updateParam,
+    group, ungroup,
     execCommand, clearError,
   }
 }
