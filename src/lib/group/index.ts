@@ -6,7 +6,6 @@ import { Point } from "@/data/Point"
 export const GROUP_NODE_NAME = 'group'
 
 export type PortType = 'inlet' | 'outlet'
-export type ViewParam = Param & { virtual?: boolean }
 export type GraphData = { nodes: Node[], params: Param[], edges: Edge[] }
 export type PortBuilder = (type: PortType, position: Point, parentId: string) => [Node, Param[]]
 
@@ -43,11 +42,76 @@ export function ancestry(nodes: Node[], id: string | undefined): Node[] {
 const portParam = (params: Param[], port: Node, name: 'input' | 'output') =>
   params.find(p => p.parentId === port.id && p.name === name)!
 
-const groupBy = <T,>(items: T[], key: (t: T) => string) =>
-  items.reduce((acc, item) => acc.set(key(item), [...(acc.get(key(item)) ?? []), item]), new Map<string, T[]>())
+const outerParamName = (port: Node) => port.name === 'inlet' ? 'input' : 'output'
 
-// boundary edges are rerouted through one inlet per distinct outer source
-// and one outlet per distinct outer destination
+// the node standing for a param at the level it is wired on: a port's outer
+// side (inlet input, outlet output) is wired from outside, as a pin of its group
+function anchorOf(byId: Map<string, Node>) {
+  return (param: Param): Node => {
+    const owner = byId.get(param.parentId)!
+    return isPort(owner) && owner.parentId != null && param.name === outerParamName(owner)
+      ? byId.get(owner.parentId)!
+      : owner
+  }
+}
+
+function isWithin(byId: Map<string, Node>, node: Node, groupId: string | undefined) {
+  if (groupId == null) return true
+  for (let id = node.parentId; id != null; id = byId.get(id)?.parentId)
+    if (id === groupId) return true
+  return false
+}
+
+// edges crossing group boundaries are rerouted through ports, one boundary at
+// a time: one inlet per distinct outer source, one outlet per distinct outer
+// destination
+export function normalize(graph: GraphData, buildPort: PortBuilder): GraphData {
+  let { nodes, params, edges } = graph
+
+  for (;;) {
+    const byId = new Map(nodes.map(n => [n.id, n]))
+    const anchor = anchorOf(byId)
+    const crossing = edges.find(e => anchor(e.src).parentId !== anchor(e.dst).parentId)
+    if (crossing == null) return { nodes, params, edges }
+
+    const srcAnchor = anchor(crossing.src)
+    const exiting = !isWithin(byId, anchor(crossing.dst), srcAnchor.parentId)
+    const type: PortType = exiting ? 'outlet' : 'inlet'
+    const groupId = (exiting ? srcAnchor.parentId : anchor(crossing.dst).parentId)!
+
+    const ports = nodes.filter(n => n.parentId === groupId && n.name === type)
+    let port = ports.find(p => edges.some(e => exiting
+      ? e.src.parentId === p.id && e.dst.id === crossing.dst.id
+      : e.dst.parentId === p.id && e.src.id === crossing.src.id))
+
+    if (port == null) {
+      const [created, createdParams] = buildPort(type, portPosition(nodes, groupId, type, ports.length), groupId)
+      port = created
+      nodes = [...nodes, created]
+      params = [...params, ...createdParams]
+    }
+
+    const rerouted: Edge[] = [
+      { src: crossing.src, dst: portParam(params, port, 'input') },
+      { src: portParam(params, port, 'output'), dst: crossing.dst },
+    ]
+    const key = (e: Edge) => `${e.src.id}:${e.dst.id}`
+    const rest = edges.filter(e => e !== crossing)
+    const existing = new Set(rest.map(key))
+    edges = [...rest, ...rerouted.filter(e => !existing.has(key(e)))]
+  }
+}
+
+function portPosition(nodes: Node[], groupId: string, type: PortType, idx: number): Point {
+  const children = nodes.filter(n => n.parentId === groupId && !isPort(n))
+  const xs = children.map(n => n.position.x)
+  const ys = children.map(n => n.position.y)
+  return {
+    x: type === 'inlet' ? Math.min(...xs) - PORT_MARGIN : Math.max(...xs) + PORT_MARGIN,
+    y: Math.min(...ys) + idx * PORT_SPACING,
+  }
+}
+
 export function groupNodes(
   graph: GraphData,
   ids: string[],
@@ -58,59 +122,24 @@ export function groupNodes(
   const members = graph.nodes.filter(n => ids.includes(n.id) && n.parentId === parentId)
   if (members.length === 0) return graph
 
-  const xs = members.map(n => n.position.x)
-  const ys = members.map(n => n.position.y)
   const group: Node = {
     id: groupId,
     name: GROUP_NODE_NAME,
     position: {
-      x: xs.reduce((a, b) => a + b, 0) / members.length,
-      y: ys.reduce((a, b) => a + b, 0) / members.length,
+      x: members.reduce((acc, n) => acc + n.position.x, 0) / members.length,
+      y: members.reduce((acc, n) => acc + n.position.y, 0) / members.length,
     },
     parentId,
   }
-
   const memberIds = members.map(n => n.id)
-  const inside = new Set(descendantIds(graph.nodes, memberIds))
-  const incoming = graph.edges.filter(e => !inside.has(e.src.parentId) && inside.has(e.dst.parentId))
-  const outgoing = graph.edges.filter(e => inside.has(e.src.parentId) && !inside.has(e.dst.parentId))
 
-  const newNodes: Node[] = []
-  const newParams: Param[] = []
-  const newEdges: Edge[] = []
-
-  const addPorts = (type: PortType, edges: Edge[], x: number) => {
-    const outerEnd = (e: Edge) => type === 'inlet' ? e.src.id : e.dst.id
-    ;[...groupBy(edges, outerEnd).values()].forEach((sameOuterEnd, idx) => {
-      const [port, params] = buildPort(type, { x, y: Math.min(...ys) + idx * PORT_SPACING }, groupId)
-      const input = portParam(params, port, 'input')
-      const output = portParam(params, port, 'output')
-      newNodes.push(port)
-      newParams.push(...params)
-      if (type === 'inlet') {
-        newEdges.push({ src: sameOuterEnd[0].src, dst: input })
-        newEdges.push(...sameOuterEnd.map(e => ({ src: output, dst: e.dst })))
-      } else {
-        newEdges.push(...sameOuterEnd.map(e => ({ src: e.src, dst: input })))
-        newEdges.push({ src: output, dst: sameOuterEnd[0].dst })
-      }
-    })
-  }
-
-  addPorts('inlet', incoming, Math.min(...xs) - PORT_MARGIN)
-  addPorts('outlet', outgoing, Math.max(...xs) + PORT_MARGIN)
-
-  const rerouted = new Set([...incoming, ...outgoing])
-
-  return {
+  return normalize({
+    ...graph,
     nodes: [
       ...graph.nodes.map(n => memberIds.includes(n.id) ? { ...n, parentId: groupId } : n),
       group,
-      ...newNodes,
     ],
-    params: [...graph.params, ...newParams],
-    edges: [...graph.edges.filter(e => !rerouted.has(e)), ...newEdges],
-  }
+  }, buildPort)
 }
 
 // ports are spliced out: every source feeding a port is wired to every
@@ -128,8 +157,8 @@ export function ungroupNode(graph: GraphData, groupId: string): GraphData {
     return srcs.flatMap(src => dsts.map(dst => ({ src, dst })))
   })
   const kept = graph.edges.filter(e => !portIds.includes(e.src.parentId) && !portIds.includes(e.dst.parentId))
-  const edgeKey = (e: Edge) => `${e.src.id}:${e.dst.id}`
-  const keptKeys = new Set(kept.map(edgeKey))
+  const key = (e: Edge) => `${e.src.id}:${e.dst.id}`
+  const seen = new Set(kept.map(key))
 
   return {
     nodes: graph.nodes
@@ -138,9 +167,7 @@ export function ungroupNode(graph: GraphData, groupId: string): GraphData {
     params: graph.params.filter(p => !portIds.includes(p.parentId)),
     edges: [
       ...kept,
-      ...[...groupBy(spliced, edgeKey).values()]
-        .map(([e]) => e)
-        .filter(e => !keptKeys.has(edgeKey(e))),
+      ...spliced.filter(e => !seen.has(key(e)) && seen.add(key(e))),
     ],
   }
 }
@@ -155,91 +182,45 @@ const pinName = (type: 'input' | 'output', idx: number) =>
     ? type
     : `${type === 'input' ? 'i' : 'o'}${idx}`
 
-// a group's pins are its inlets' inputs and outlets' outputs, ordered top to
-// bottom; edges crossing its boundary elsewhere get a virtual pin per outer endpoint
+// expects a normalized graph: a group's pins are the outer side of its ports,
+// ordered top to bottom and named after their labels
 export function viewOf(
   nodes: Node[],
   params: Param[],
   edges: Edge[],
   parentId: string | undefined,
-): { nodes: Node[], params: ViewParam[], edges: Edge[] } {
+): GraphData {
 
   const byId = new Map(nodes.map(n => [n.id, n]))
+  const anchor = anchorOf(byId)
   const visibleNodes = nodes.filter(n => n.parentId === parentId)
-  const visibleIds = visibleNodes.map(n => n.id)
 
-  const visibleAncestor = (nodeId: string): string | undefined => {
-    let cur = byId.get(nodeId)
-    while (cur != null && cur.parentId !== parentId)
-      cur = cur.parentId != null ? byId.get(cur.parentId) : undefined
-    return cur?.id
-  }
-
-  const portPins = new Map<string, ViewParam>()
-  visibleNodes.filter(isGroup).forEach(group => {
+  const pins = visibleNodes.filter(isGroup).flatMap(group => {
     const ports = nodes
       .filter(n => n.parentId === group.id && isPort(n))
       .toSorted((a, b) => a.position.y - b.position.y)
-    for (const port of ports) {
-      const type = port.name === 'inlet' ? 'input' : 'output'
-      const param = portParam(params, port, type)
-      portPins.set(param.id, { ...param, parentId: group.id, name: port.label ?? '' })
-    }
-  })
-
-  const virtualPins = new Map<string, ViewParam>()
-  const virtualPin = (groupId: string, type: 'input' | 'output', outerParamId: string): ViewParam => {
-    const id = `${groupId}:${type}:${outerParamId}`
-    const existing = virtualPins.get(id)
-    if (existing) return existing
-    const created: ViewParam = {
-      id,
-      parentId: groupId,
-      name: '',
-      type,
-      dataType: 'signal',
-      offset: { x: 0, y: 0 },
-      virtual: true,
-    }
-    virtualPins.set(id, created)
-    return created
-  }
-
-  const viewEdges = new Map<string, Edge>()
-  for (const edge of edges) {
-    const srcOwner = visibleAncestor(edge.src.parentId)
-    const dstOwner = visibleAncestor(edge.dst.parentId)
-    if (srcOwner == null || dstOwner == null || srcOwner === dstOwner) continue
-
-    const src = srcOwner === edge.src.parentId
-      ? edge.src
-      : portPins.get(edge.src.id) ?? virtualPin(srcOwner, 'output', edge.dst.id)
-    const dst = dstOwner === edge.dst.parentId
-      ? edge.dst
-      : portPins.get(edge.dst.id) ?? virtualPin(dstOwner, 'input', edge.src.id)
-    viewEdges.set(`${src.id}:${dst.id}`, { src, dst })
-  }
-
-  const pins = visibleNodes.filter(isGroup).flatMap(group => {
-    const all = [...portPins.values(), ...virtualPins.values()].filter(p => p.parentId === group.id)
-    const inputs = all.filter(p => p.type === 'input')
-    const outputs = all.filter(p => p.type === 'output')
-    const named = (pins: ViewParam[]) => pins.map((p, idx) =>
-      ({ ...p, name: p.name || pinName(p.type as 'input' | 'output', idx) }))
-    return [...named(inputs), ...named(outputs)]
+    const pinsOf = (type: PortType) => ports
+      .filter(p => p.name === type)
+      .map((port, idx) => {
+        const param = portParam(params, port, outerParamName(port))
+        return { ...param, parentId: group.id, name: port.label ?? pinName(param.type as 'input' | 'output', idx) }
+      })
+    return [...pinsOf('inlet'), ...pinsOf('outlet')]
       .map((p, idx) => ({ ...p, offset: pinOffset(p.type as 'input' | 'output', idx) }))
   })
-  const positioned = new Map(pins.map(p => [p.id, p]))
+  const pinById = new Map(pins.map(p => [p.id, p]))
+
+  const atLevel = (p: Param) => anchor(p).parentId === parentId
+  const asPin = (p: Param) => pinById.get(p.id) ?? p
 
   return {
     nodes: visibleNodes,
     params: [
-      ...params.filter(p => visibleIds.includes(p.parentId)),
+      ...params.filter(p => byId.get(p.parentId)!.parentId === parentId && atLevel(p)),
       ...pins,
     ],
-    edges: [...viewEdges.values()].map(e => ({
-      src: positioned.get(e.src.id) ?? e.src,
-      dst: positioned.get(e.dst.id) ?? e.dst,
-    })),
+    edges: edges
+      .filter(e => atLevel(e.src) && atLevel(e.dst))
+      .map(e => ({ src: asPin(e.src), dst: asPin(e.dst) })),
   }
 }

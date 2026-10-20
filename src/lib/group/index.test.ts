@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test"
 import { Edge } from "@/data/Edge"
 import { Node } from "@/data/Node"
 import { Param } from "@/data/Param"
-import { descendantIds, GraphData, groupNodes, PortBuilder, ungroupNode, viewOf } from "."
+import { descendantIds, GraphData, groupNodes, normalize, PortBuilder, ungroupNode, viewOf } from "."
 
 const node = (id: string, parentId?: string, x = 0, y = 0): Node =>
   ({ id, name: id, position: { x, y }, parentId })
@@ -99,6 +99,45 @@ describe('groupNodes', () => {
   })
 })
 
+describe('normalize', () => {
+  const nested = () => {
+    const nodes = [node('outer'), node('inner', 'outer'), node('a', 'inner'), node('b')]
+    nodes[0].name = nodes[1].name = 'group'
+    return { nodes, params: [...io('a'), ...io('b')] }
+  }
+
+  test('routes an edge leaving nested groups through one outlet per level', () => {
+    const { nodes, params } = nested()
+    const g = normalize(graphOf(nodes, params, [['a', 'b']]), buildPort)
+
+    const outlets = g.nodes.filter(n => n.name === 'outlet')
+    expect(outlets.map(n => n.parentId).toSorted()).toEqual(['inner', 'outer'])
+    expect(g.edges).toHaveLength(3)
+
+    expect(pinsOf(g, 'outer').map(p => p.name)).toEqual(['output'])
+    expect(view(g).edges).toHaveLength(1)
+    expect(view(g, 'outer').edges).toHaveLength(1)
+    expect(view(g, 'inner').edges).toHaveLength(1)
+  })
+
+  test('reuses the inlet already fed by the same source', () => {
+    const nodes = [node('g'), node('a', 'g'), node('c', 'g'), node('x')]
+    nodes[0].name = 'group'
+    const params = [...io('a'), ...io('c'), ...io('x')]
+    const grouped = normalize(graphOf(nodes, params, [['x', 'a']]), buildPort)
+    const again = normalize({ ...grouped, edges: [...grouped.edges, edge('x', 'c', params)] }, buildPort)
+
+    expect(again.nodes.filter(n => n.name === 'inlet')).toHaveLength(1)
+    expect(pinsOf(again, 'g').map(p => p.name)).toEqual(['input'])
+    expect(view(again, 'g').edges).toHaveLength(2)
+  })
+
+  test('leaves same-level edges alone', () => {
+    const g = graphOf([node('a'), node('b')], [...io('a'), ...io('b')], [['a', 'b']])
+    expect(normalize(g, buildPort)).toEqual(g)
+  })
+})
+
 describe('ungroupNode', () => {
   test('splices ports out and restores direct edges', () => {
     const g = graphOf(
@@ -144,17 +183,13 @@ describe('viewOf', () => {
     expect(inner.edges[0].dst.id).toBe('a.in')
   })
 
-  test('edges into nested groups without a port get a virtual pin', () => {
-    const nodes = [node('outer'), node('inner', 'outer'), node('a', 'inner'), node('b')]
-    nodes[0].name = nodes[1].name = 'group'
-    const params = [...io('a'), ...io('b')]
-    const g = graphOf(nodes, params, [['a', 'b']])
-
-    const root = view(g)
-    expect(root.nodes.map(n => n.id)).toEqual(['outer', 'b'])
-    const pins = pinsOf(g, 'outer')
-    expect(pins.map(p => [p.name, p.virtual])).toEqual([['output', true]])
-    expect(view(g, 'outer').edges).toHaveLength(0)
+  test('hides the outer side of ports inside their group', () => {
+    const g = groupNodes(
+      graphOf([node('x'), node('a')], [...io('x'), ...io('a')], [['x', 'a']]),
+      ['a'], undefined, 'g', buildPort,
+    )
+    const inlet = view(g, 'g').nodes.find(n => n.name === 'inlet')!
+    expect(view(g, 'g').params.filter(p => p.parentId === inlet.id).map(p => p.name)).toEqual(['output'])
   })
 
   test('hides edges internal to a group', () => {

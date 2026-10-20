@@ -13,7 +13,7 @@ import { useConnectionEvents } from './useConnectionEvents'
 import { useSelectionStore } from '@/contexts/SelectionContext'
 import { useSelectionEvents } from './useSelectionEvents'
 import { useMidiInputNames } from '@/hooks/useMidiInputNames'
-import { isGroup, ViewParam } from '@/lib/group'
+import { isGroup } from '@/lib/group'
 
 export default function AppGraph({
   nodes,
@@ -26,7 +26,7 @@ export default function AppGraph({
   onEnterGroup,
 }: {
   nodes: Node[],
-  params: ViewParam[],
+  params: Param[],
   edges: Edge[],
   onUpdateParam: (id: string, value: string | number | File) => void,
   onMoveNodes: (nodeIds: string[], delta: Point) => void,
@@ -126,7 +126,7 @@ export default function AppGraph({
                   ? midiInputNames.map(name => ({label: name, value: name}))
                   : param.options}
                 showInput={param.dataType != 'signal'}
-                connectable={!(param as ViewParam).virtual && param.type == 'input' && param.dataType != 'string' && param.dataType != 'file'}
+                connectable={param.type == 'input' && param.dataType != 'string' && param.dataType != 'file'}
                 onMouseUp={() => endConnection(param)}
                 onChange={onParamChange(param)}
                 type='input'
@@ -138,7 +138,6 @@ export default function AppGraph({
                 key={param.id}
                 name={param.name}
                 showInput={false}
-                connectable={!(param as ViewParam).virtual}
                 onMouseDown={() => startConnection(param)}
                 type='output'
               />

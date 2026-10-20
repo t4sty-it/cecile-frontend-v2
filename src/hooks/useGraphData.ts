@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { nodes as nodeConstructors } from '@/lib/commands/node/nodes'
 import { buildNode } from "@/lib/commands/node";
 import { useMousePosition } from "./useMousePosition";
-import { descendantIds, GraphData, groupNodes, PortBuilder, ungroupNode } from "@/lib/group";
+import { descendantIds, GraphData, groupNodes, normalize, PortBuilder, ungroupNode } from "@/lib/group";
 
 const newId = () => '' + Math.random()
 
@@ -151,12 +151,14 @@ export function useGraphData() {
     try {
       const diffGraph = exec(cmd, srcGraph, nodeBuilders, mousePosition, {}) // TODO pass the actual metaCommands
       const [newNodes, newParams, newEdges] = valuesOf(union(srcGraph, diffGraph))
-      setNodes(newNodes)
-      setParams(newParams)
-      setEdges(newEdges.map(e => ({
-        src: newParams.find(p => p.id == e.src)!,
-        dst: newParams.find(p => p.id == e.dst)!
-      })))
+      setGraph(normalize({
+        nodes: newNodes,
+        params: newParams,
+        edges: newEdges.map(e => ({
+          src: newParams.find(p => p.id == e.src)!,
+          dst: newParams.find(p => p.id == e.dst)!
+        })),
+      }, buildPort))
       setError(null)
       return true
     } catch (e) {
