@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { nodes as nodeConstructors } from '@/lib/commands/node/nodes'
 import { buildNode } from "@/lib/commands/node";
 import { useMousePosition } from "./useMousePosition";
-import { descendantIds, GraphData, groupNodes, normalize, PortBuilder, ungroupNode } from "@/lib/group";
+import { descendantIds, GraphData, groupNodes, PortBuilder, ungroupNode, viewOf } from "@/lib/group";
 
 const newId = () => '' + Math.random()
 
@@ -142,23 +142,36 @@ export function useGraphData() {
       )
     )
     
-    const srcGraph = graphOf<Node, Param>(
-      nodes,
-      params,
-      edges.map(e => ({id: `${e.src.id}:${e.dst.id}`, src: e.src.id, dst: e.dst.id }))
+    const langGraphOf = (graph: GraphData) => graphOf<Node, Param>(
+      graph.nodes,
+      graph.params,
+      graph.edges.map(e => ({id: `${e.src.id}:${e.dst.id}`, src: e.src.id, dst: e.dst.id }))
     )
+    const srcGraph = langGraphOf({ nodes, params, edges })
+    const levelGraph = langGraphOf(viewOf(nodes, params, edges, parentId))
+
+    // selected group pins come back re-parented onto their group: restore the port params
+    const paramsById = new Map(params.map(p => [p.id, p]))
+    const unpin = (param: Param) => {
+      const original = paramsById.get(param.id)
+      return original != null && original.parentId != param.parentId ? original : param
+    }
 
     try {
-      const diffGraph = exec(cmd, srcGraph, nodeBuilders, mousePosition, {}) // TODO pass the actual metaCommands
-      const [newNodes, newParams, newEdges] = valuesOf(union(srcGraph, diffGraph))
-      setGraph(normalize({
+      const diffGraph = exec(cmd, levelGraph, nodeBuilders, mousePosition, {}) // TODO pass the actual metaCommands
+      const [diffNodes, diffParams, diffEdges] = valuesOf(diffGraph)
+      const [newNodes, newParams, newEdges] = valuesOf(union(
+        srcGraph,
+        graphOf(diffNodes, diffParams.map(unpin), diffEdges),
+      ))
+      setGraph({
         nodes: newNodes,
         params: newParams,
         edges: newEdges.map(e => ({
           src: newParams.find(p => p.id == e.src)!,
           dst: newParams.find(p => p.id == e.dst)!
         })),
-      }, buildPort))
+      })
       setError(null)
       return true
     } catch (e) {
