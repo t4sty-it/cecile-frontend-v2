@@ -54,7 +54,7 @@ export default function GraphPage() {
 
   const ungroupSelection = () => {
     const groups = view.nodes.filter(n => isGroup(n) && selection.nodes.includes(n.id))
-    groups.forEach(n => graph.ungroup(n.id))
+    graph.ungroup(groups.map(n => n.id))
     selection.clear()
   }
 

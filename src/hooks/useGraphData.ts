@@ -8,7 +8,9 @@ import { useEffect, useState } from "react";
 import { nodes as nodeConstructors } from '@/lib/commands/node/nodes'
 import { buildNode } from "@/lib/commands/node";
 import { useMousePosition } from "./useMousePosition";
-import { descendantIds, groupNodes, ungroupNode } from "@/lib/group";
+import { descendantIds, GraphData, groupNodes, PortBuilder, ungroupNode } from "@/lib/group";
+
+const newId = () => '' + Math.random()
 
 export function useGraphData() {
 
@@ -25,8 +27,13 @@ export function useGraphData() {
 
   const mousePosition = useMousePosition()
 
-  const toggleConnection = (src: Param, dst: Param) => {
-    const edgeIdx = edges.findIndex(e => 
+  // the canvas may hand over group pins, i.e. port params re-parented to the group
+  const toggleConnection = (srcPin: Param, dstPin: Param) => {
+    const src = params.find(p => p.id == srcPin.id)
+    const dst = params.find(p => p.id == dstPin.id)
+    if (src == null || dst == null) return
+
+    const edgeIdx = edges.findIndex(e =>
       e.src.id == src.id &&
       e.dst.id == dst.id
     )
@@ -56,14 +63,25 @@ export function useGraphData() {
     })
   }
 
+  const setGraph = (graph: GraphData) => {
+    setNodes(graph.nodes)
+    setParams(graph.params)
+    setEdges(graph.edges)
+  }
+
+  const buildPort: PortBuilder = (type, position, parentId) => {
+    const [node, ports] = buildNode(type, { nodeOverrides: { name: type, position, parentId } })
+    return [node, ports.map(_fixParamOffset)]
+  }
+
   const group = (ids: string[], parentId: string | undefined): string => {
-    const groupId = '' + Math.random()
-    setNodes(nodes => groupNodes(nodes, ids, parentId, groupId))
+    const groupId = newId()
+    setGraph(groupNodes({ nodes, params, edges }, ids, parentId, groupId, buildPort))
     return groupId
   }
 
-  const ungroup = (groupId: string) => {
-    setNodes(nodes => ungroupNode(nodes, groupId))
+  const ungroup = (groupIds: string[]) => {
+    setGraph(groupIds.reduce(ungroupNode, { nodes, params, edges }))
   }
 
   const addNode = (node: Node, params: Param[]) => {
