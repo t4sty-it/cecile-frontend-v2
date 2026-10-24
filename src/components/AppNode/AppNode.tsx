@@ -14,6 +14,7 @@ export default function AppNode({
   style,
   onMove,
   onDelete,
+  onDoubleClick,
 }: {
   id: string,
   name: string,
@@ -23,6 +24,7 @@ export default function AppNode({
   style?: CSSProperties,
   onMove?: (delta: Point) => void,
   onDelete?: () => void,
+  onDoubleClick?: () => void,
 }) {
 
   const ref = useRef<HTMLDivElement>(null)
@@ -77,7 +79,7 @@ export default function AppNode({
   const cx = cssClasses('app-node', isSelected && 'app-node--selected')
 
   return (
-    <div ref={ref} className={cx} style={style} onMouseDown={startDrag}>
+    <div ref={ref} className={cx} style={style} onMouseDown={startDrag} onDoubleClick={onDoubleClick}>
       <div className="app-node__header">
         <div className="app-node__name">{name}</div>
         {label &&

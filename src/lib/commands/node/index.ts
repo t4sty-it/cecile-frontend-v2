@@ -22,7 +22,8 @@ export const buildNode: NodeBuilder = (
   const node = {
     id: nodeOverrides.id ?? '' + Math.random(),
     name: nodeOverrides.name ?? nodeType,
-    position: nodeOverrides.position
+    position: nodeOverrides.position,
+    parentId: nodeOverrides.parentId,
   }
 
   const params = buildParams(node, nodeType, paramOverrides)

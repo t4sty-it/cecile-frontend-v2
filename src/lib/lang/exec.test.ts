@@ -1,5 +1,5 @@
 import { test, expect } from 'bun:test'
-import { CommandError, exec, execConnect, execCreate, execSelect, horizontalOffset } from './exec'
+import { CommandError, exec, execProgram, execConnect, execCreate, execSelect, horizontalOffset } from './exec'
 import { graphOf } from '../graph'
 import { Node } from '@/data/Node'
 import { Param } from '@/data/Param'
@@ -263,4 +263,94 @@ test('exec runs meta commands among other lines', () => {
 
   expect(logged).toEqual([['a', 'b']])
   expect(length(result.nodes)).toBe(1)
+})
+
+// builders with ports, plus a group builder, for template tests
+function templateEnv() {
+  const builders = multilineBuilders()
+  let count = 0
+  const port = (name: string) => (): [Node, Param[]] => {
+    const id = `${name}${count++}`
+    return [
+      { id, name, position: pos() },
+      [
+        { id: `${id}.in`, dataType: 'signal', name: 'input', offset: pos(), type: 'input', parentId: id },
+        { id: `${id}.out`, dataType: 'signal', name: 'output', offset: pos(), type: 'output', parentId: id },
+      ]
+    ]
+  }
+  return {
+    builders: { ...builders, inlet: port('inlet'), outlet: port('outlet') },
+    env: { buildGroup: (): Node => ({ id: `g${count++}`, name: 'group', position: pos() }) },
+  }
+}
+
+test('a definition creates nothing, an instance creates a group with the body inside', () => {
+  const { builders, env } = templateEnv()
+  const { diff, definitions } = execProgram(
+    'saw := ( inlet:freq > 3*osc > outlet )\nsaw:lead',
+    emptyGraph(), builders, p.of(0, 0), {}, env,
+  )
+  expect(Object.keys(definitions)).toEqual(['saw'])
+
+  const nodes = valuesOf(diff.nodes)
+  const group = nodes.find(n => n.group)!
+  expect(group).toMatchObject({ name: 'saw', label: 'lead' })
+  expect(nodes.filter(n => n.parentId === group.id)).toHaveLength(5)
+  expect(length(diff.edges)).toBe(6)
+})
+
+test('definitions outlive the program and instances get fresh nodes', () => {
+  const { builders, env } = templateEnv()
+  const { definitions } = execProgram('saw := ( osc > outlet )', emptyGraph(), builders, p.of(0, 0), {}, env)
+  const diff = exec('2*saw', emptyGraph(), builders, p.of(0, 0), {}, { ...env, definitions })
+
+  const nodes = valuesOf(diff.nodes)
+  expect(nodes.filter(n => n.group)).toHaveLength(2)
+  expect(nodes.filter(n => n.name === 'osc')).toHaveLength(2)
+})
+
+test('created groups are wired through their pins', () => {
+  const { builders, env } = templateEnv()
+  const diff = exec('saw := ( inlet > osc > outlet )\ngain > saw > gain', emptyGraph(), builders, p.of(0, 0), {}, env)
+
+  const nodes = valuesOf(diff.nodes)
+  const ports = nodes.filter(n => n.name === 'inlet' || n.name === 'outlet').map(n => n.id)
+  const gains = nodes.filter(n => n.name === 'gain').map(n => n.id)
+  const parentOf = (id: string) => valuesOf(diff.params).find(p => p.id === id)!.parentId
+  const outer = valuesOf(diff.edges).filter(e => gains.includes(parentOf(e.src)) || gains.includes(parentOf(e.dst)))
+
+  expect(outer).toHaveLength(2)
+  expect(outer.every(e => ports.includes(parentOf(e.src)) || ports.includes(parentOf(e.dst)))).toBe(true)
+  // port params keep their owner, they are not re-parented as pins
+  expect(valuesOf(diff.params).filter(p => p.parentId === nodes.find(n => n.group)!.id)).toHaveLength(0)
+})
+
+test('selectors see a created group, not its contents', () => {
+  const { builders, env } = templateEnv()
+  const diff = exec('saw := ( osc > outlet )\nsaw\n$osc > gain', emptyGraph(), builders, p.of(0, 0), {}, env)
+  expect(valuesOf(diff.edges).filter(e => e.dst.startsWith('gain'))).toHaveLength(0)
+
+  const wired = exec('saw := ( osc > outlet )\nsaw\n$saw > gain', emptyGraph(), builders, p.of(0, 0), {}, env)
+  expect(valuesOf(wired.edges).filter(e => e.dst.startsWith('gain'))).toHaveLength(1)
+})
+
+test('definitions in a body are local to it', () => {
+  const { builders, env } = templateEnv()
+  const { diff, definitions } = execProgram(
+    'pair := (\n  one := ( osc > outlet )\n  2*one\n)\npair',
+    emptyGraph(), builders, p.of(0, 0), {}, env,
+  )
+  expect(Object.keys(definitions)).toEqual(['pair'])
+  const groups = valuesOf(diff.nodes).filter(n => n.group)
+  expect(groups.map(n => n.name).toSorted()).toEqual(['one', 'one', 'pair'])
+
+  expect(catchThrown(() => exec('one', emptyGraph(), builders, p.of(0, 0), {}, { ...env, definitions })))
+    .toBeInstanceOf(CommandError)
+})
+
+test('a template cannot instantiate itself', () => {
+  const { builders, env } = templateEnv()
+  expect(catchThrown(() => exec('loop := ( loop )\nloop', emptyGraph(), builders, p.of(0, 0), {}, env)))
+    .toBeInstanceOf(CommandError)
 })

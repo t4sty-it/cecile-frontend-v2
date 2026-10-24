@@ -13,6 +13,7 @@ import { useConnectionEvents } from './useConnectionEvents'
 import { useSelectionStore } from '@/contexts/SelectionContext'
 import { useSelectionEvents } from './useSelectionEvents'
 import { useMidiInputNames } from '@/hooks/useMidiInputNames'
+import { isGroup } from '@/lib/group'
 
 export default function AppGraph({
   nodes,
@@ -22,6 +23,7 @@ export default function AppGraph({
   onDeleteNode,
   onToggleConnection,
   onUpdateParam,
+  onEnterGroup,
 }: {
   nodes: Node[],
   params: Param[],
@@ -30,6 +32,7 @@ export default function AppGraph({
   onMoveNodes: (nodeIds: string[], delta: Point) => void,
   onDeleteNode: (nodeId: string) => void,
   onToggleConnection: (src: Param, dst: Param) => void,
+  onEnterGroup: (nodeId: string) => void,
 }) {
 
   const graph = new Graph(nodes, params, edges)
@@ -143,6 +146,8 @@ export default function AppGraph({
             onMove={(point: Point) => move(node, point)}
 
             onDelete={() => deleteNode(node.id)}
+
+            onDoubleClick={isGroup(node) ? () => onEnterGroup(node.id) : undefined}
             
             style={{
               left: node.position.x,

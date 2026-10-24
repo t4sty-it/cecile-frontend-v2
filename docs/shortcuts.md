@@ -10,6 +10,8 @@ the console instead, so the single-key shortcuts below don't fire.
 | <kbd>Space</kbd> | Focus the console input. |
 | <kbd>p</kbd> | Open the command palette, to place a module from a list. |
 | <kbd>m</kbd> | Start [MIDI learn](../README.md#midi-learn): touch a control on your MIDI device and the matching module is placed under the cursor. |
+| <kbd>g</kbd> | Collapse the selected nodes into a [group](language.md#groups). |
+| <kbd>u</kbd> | Ungroup the selected groups, putting their contents back in place. |
 | <kbd>Esc</kbd> | Close the docs or the command palette, or cancel placing a module. |
 
 ## Console
@@ -30,3 +32,4 @@ the console instead, so the single-key shortcuts below don't fire.
 | <kbd>Shift</kbd> + drag on the canvas | Add to the current selection. |
 | Drag a node | Move it (and every selected node). |
 | Drag from one inlet/outlet to another | Connect them. |
+| Double-click a group | Go inside it; the breadcrumb at the top leads back up. |

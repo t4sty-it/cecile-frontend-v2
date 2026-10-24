@@ -14,6 +14,33 @@
     font-weight: 500;
   }
 
+  &__breadcrumb {
+    position: absolute;
+    top: 2.25em;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
+    display: flex;
+    gap: 0.4em;
+    color: white;
+
+    button {
+      background: none;
+      border: none;
+      padding: 0;
+      color: inherit;
+      font: inherit;
+      text-decoration: underline;
+      cursor: pointer;
+
+      &:disabled {
+        text-decoration: none;
+        font-weight: 600;
+        cursor: default;
+      }
+    }
+  }
+
   .console-input {
     position: absolute;
     bottom: 1em;

@@ -12,7 +12,7 @@ BlankLines
 = (_ Newline)* _
 
 HelpedCommand
-= cmd:(MetaCommand / Command) _ help:"?"? {
+= cmd:(MetaCommand / Definition / Command) _ help:"?"? {
 	if (help) {
     	return {
         	action: "help",
@@ -35,6 +35,21 @@ MetaArg
 = [^ \n\r?]+ {
 	return text()
 }
+
+// `name := ( commands )` defines a group template; its body is one or more
+// commands, which may span lines inside the parens. Definitions in a body
+// are local to it
+Definition
+= name:Identifier _ ":=" _ "(" BlankLines head:BodyLine tail:(Newline BlankLines BodyLine)* BlankLines ")" {
+	return {
+    action: "define",
+    name,
+    body: [head, ...tail.map(t => t[2])]
+  }
+}
+
+BodyLine
+= Definition / Command
 
 Command
 = head:ParameterizedTerm tail:(_ TargetedConnector _ Command _)* {
