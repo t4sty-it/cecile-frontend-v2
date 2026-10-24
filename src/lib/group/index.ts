@@ -1,7 +1,7 @@
 import { Edge } from "@/data/Edge"
 import { Node } from "@/data/Node"
 import { Param } from "@/data/Param"
-import { Point } from "@/data/Point"
+import { add, Point } from "@/data/Point"
 
 export const GROUP_NODE_NAME = 'group'
 
@@ -112,6 +112,11 @@ function portPosition(nodes: Node[], groupId: string, type: PortType, idx: numbe
   }
 }
 
+const centroid = (nodes: Node[]): Point => ({
+  x: nodes.reduce((acc, n) => acc + n.position.x, 0) / nodes.length,
+  y: nodes.reduce((acc, n) => acc + n.position.y, 0) / nodes.length,
+})
+
 export function groupNodes(
   graph: GraphData,
   ids: string[],
@@ -126,10 +131,7 @@ export function groupNodes(
     id: groupId,
     name: GROUP_NODE_NAME,
     group: true,
-    position: {
-      x: members.reduce((acc, n) => acc + n.position.x, 0) / members.length,
-      y: members.reduce((acc, n) => acc + n.position.y, 0) / members.length,
-    },
+    position: centroid(members),
     parentId,
   }
   const memberIds = members.map(n => n.id)
@@ -144,13 +146,16 @@ export function groupNodes(
 }
 
 // ports are spliced out: every source feeding a port is wired to every
-// destination it fed
+// destination it fed. children keep their layout, centered on the group
 export function ungroupNode(graph: GraphData, groupId: string): GraphData {
   const group = graph.nodes.find(n => n.id === groupId)
   if (group == null || !isGroup(group)) return graph
 
   const ports = graph.nodes.filter(n => n.parentId === groupId && isPort(n))
   const portIds = ports.map(p => p.id)
+  const children = graph.nodes.filter(n => n.parentId === groupId && !isPort(n))
+  const center = centroid(children)
+  const shift = { x: group.position.x - center.x, y: group.position.y - center.y }
 
   const spliced = ports.flatMap(port => {
     const srcs = graph.edges.filter(e => e.dst.parentId === port.id).map(e => e.src)
@@ -164,7 +169,9 @@ export function ungroupNode(graph: GraphData, groupId: string): GraphData {
   return {
     nodes: graph.nodes
       .filter(n => n.id !== groupId && !portIds.includes(n.id))
-      .map(n => n.parentId === groupId ? { ...n, parentId: group.parentId } : n),
+      .map(n => n.parentId === groupId
+        ? { ...n, parentId: group.parentId, position: add(n.position, shift) }
+        : n),
     params: graph.params.filter(p => !portIds.includes(p.parentId)),
     edges: [
       ...kept,

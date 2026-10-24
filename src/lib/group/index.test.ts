@@ -97,6 +97,20 @@ describe('groupNodes', () => {
     expect(grouped.nodes.filter(n => n.parentId === 'g').map(n => n.id)).toEqual(['a', 'b'])
     expect(grouped.nodes.find(n => n.id === 'c')!.parentId).toBe('other')
   })
+
+  test('ungrouping centers the children on the moved group', () => {
+    const g = graphOf([node('a', undefined, 0), node('b', undefined, 100)], [], [])
+    const grouped = groupNodes(g, ['a', 'b'], undefined, 'g', buildPort)
+    const moved = {
+      ...grouped,
+      nodes: grouped.nodes.map(n => n.id === 'g' ? { ...n, position: { x: 250, y: 30 } } : n),
+    }
+
+    expect(grouped.nodes.filter(n => n.parentId === 'g').map(n => n.position))
+      .toEqual([{ x: 0, y: 0 }, { x: 100, y: 0 }])
+    expect(ungroupNode(moved, 'g').nodes.map(n => n.position))
+      .toEqual([{ x: 200, y: 30 }, { x: 300, y: 30 }])
+  })
 })
 
 describe('normalize', () => {

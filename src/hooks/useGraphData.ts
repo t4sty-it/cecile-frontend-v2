@@ -55,14 +55,13 @@ export function useGraphData() {
   }
 
   const moveNodes = (ids: string[], delta: Point) => {
-    setNodes(nodes => {
-      const moved = descendantIds(nodes, ids)
-      return nodes.map(node =>
-        moved.includes(node.id)
+    setNodes(nodes =>
+      nodes.map(node =>
+        ids.includes(node.id)
           ? {...node, position: add(node.position, delta)}
           : node
       )
-    })
+    )
   }
 
   const setGraph = (graph: GraphData) => {
