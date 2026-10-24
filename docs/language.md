@@ -44,6 +44,9 @@ fails as a whole and shows an error in the console bar.
 A command can span several lines, one command per line (see
 [Multi-line commands](#multi-line-commands)).
 
+A **definition** (`name := ( ... )`) turns a set of commands into a reusable
+group module (see [Groups](#groups)).
+
 Two other command forms exist: **meta commands** (`#name args`) and the
 **`?` help suffix**, both described at the end of this page.
 
@@ -113,6 +116,9 @@ Notes:
 - Both the type and the label are fuzzy-matched (see
   [Fuzzy matching](#fuzzy-matching-and-abbreviations)), so `$:mix` also
   selects modules labelled `mixer`.
+- A selector only sees the modules on screen: inside a group it sees that
+  group's modules, and at the top level it sees groups but not what's in
+  them (see [Groups](#groups)).
 - A selector that matches nothing is not an error; it simply produces no
   connections.
 - Params written after a selector (`$osc @frequency=220`) are accepted by the
@@ -328,6 +334,113 @@ Known limitation: a symbol that starts with `n`, `z` or `r` is read as the
 corresponding variable and the command fails to parse (`@shape=notch` is
 rejected). Until this is fixed, abbreviate from a later letter, e.g.
 `@shape=otch` for `notch`.
+
+## Groups
+
+A group is a module that contains other modules. On the canvas it shows up as
+a single box. Double-click it to go inside, and use the breadcrumb at the top
+of the editor to go back up. Groups can also be made with the mouse, by
+selecting modules and pressing <kbd>g</kbd> (see the
+[shortcuts](shortcuts.md)). This section covers how to define and create them
+from the console.
+
+### Defining a group
+
+`name := ( commands )` defines a group called `name`:
+
+```cecile
+supersaw := ( inlet:frequency > frequency{ 3*osc @shape=saw @freq=220+10*r > outlet )
+supersaw > out
+```
+
+The first line only stores the definition; nothing is added to the patch.
+The second line creates a `supersaw` group and wires it to a new `out`. A
+group is created exactly like any other module, so a count, a label and
+connectors all work:
+
+```cecile
+2*supersaw:pad > $out
+```
+
+Every copy is built from scratch by running the commands of the definition
+again. The two `pad` groups above are independent, and each one draws its own
+random detuning from `r`.
+
+A definition can span several lines inside the parentheses. The opening `(`
+must be on the same line as `:=`:
+
+```cecile
+voice := (
+  inlet:pitch > frequency{ osc:vco @shape=saw > f:vcf > g:vca > outlet
+  inlet:cutoff > frequency{ $f:vcf
+)
+voice
+```
+
+### Inlets and outlets
+
+A group gets its inlets and outlets from the `inlet` and `outlet` modules
+inside it, in the style of Pure Data:
+
+- an `inlet` passes whatever is connected to the group's matching inlet on to
+  the modules it is wired to;
+- an `outlet` sends what it receives out of the matching outlet of the group.
+
+The label of an `inlet`/`outlet` becomes the name of the group's
+inlet/outlet. In the `voice` example above, the group has inlets called
+`pitch` and `cutoff`, so you can pick them with `name{` like any other inlet:
+
+```cecile
+midi-keyboard-in }frequency > pitch{ voice > out
+```
+
+Unlabelled inlets are named `input`, `i1`, `i2`, ..., and unlabelled outlets
+`output`, `o1`, `o2`, ..., from top to bottom. A group with a single unlabelled
+inlet and outlet can therefore be connected without naming them, as in
+`osc > mygroup > out`.
+
+### Scope
+
+- A definition made at the top of a command is **global**. It stays
+  available to every later command, and you can create the group as many
+  times as you like, at the top level or inside other groups.
+- A definition made inside another definition is **local**. It can only be
+  used within that definition:
+
+  ```cecile
+  stack := (
+    voice := ( osc @shape=saw @freq=110*2^r > outlet )
+    3*voice > g @gain=0.3 > outlet
+  )
+  stack > out
+  ```
+
+  `stack` contains three `voice` groups, but typing `voice` afterwards fails,
+  because `voice` only exists inside `stack`.
+- Defining a name again replaces the old definition for later commands.
+  Groups that already exist are left as they are.
+- Names are resolved when a group is created, not when it is defined. A
+  definition can therefore use a group defined after it, as long as that
+  group exists by the time the first one is created.
+
+### Rules and limitations
+
+- The commands of a definition run on their own: selectors inside it only see
+  the modules created by the definition itself.
+- Selectors outside a group never see inside it. After `supersaw`, the line
+  `$osc > gain` does not reach the oscillators in the group, but
+  `$supersaw > gain` connects the group itself.
+- A group has no params of its own, so `supersaw @freq=220` is an error. Feed
+  values in through an inlet instead.
+- A definition can't use itself, directly or through another group:
+  `loop := ( loop )` fails as soon as `loop` is created.
+- Group names follow the [naming rules](#naming-rules), so they can't contain
+  digits.
+- A definition with the same name as a module type takes precedence over that
+  module type. Fuzzy matching also searches definitions first.
+- Meta commands, `?` and blank-only bodies are not allowed inside a
+  definition.
+- Definitions are not saved: they last until the page is reloaded.
 
 ## Fuzzy matching and abbreviations
 
