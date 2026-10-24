@@ -6,6 +6,7 @@ export interface Node {
   label?: string
   position: Point
   parentId?: string
+  group?: boolean
 }
 
 export function isNode(n: object): n is Node {

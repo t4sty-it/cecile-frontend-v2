@@ -102,7 +102,7 @@ describe('groupNodes', () => {
 describe('normalize', () => {
   const nested = () => {
     const nodes = [node('outer'), node('inner', 'outer'), node('a', 'inner'), node('b')]
-    nodes[0].name = nodes[1].name = 'group'
+    nodes[0].group = nodes[1].group = true
     return { nodes, params: [...io('a'), ...io('b')] }
   }
 
@@ -122,7 +122,7 @@ describe('normalize', () => {
 
   test('reuses the inlet already fed by the same source', () => {
     const nodes = [node('g'), node('a', 'g'), node('c', 'g'), node('x')]
-    nodes[0].name = 'group'
+    nodes[0].group = true
     const params = [...io('a'), ...io('c'), ...io('x')]
     const grouped = normalize(graphOf(nodes, params, [['x', 'a']]), buildPort)
     const again = normalize({ ...grouped, edges: [...grouped.edges, edge('x', 'c', params)] }, buildPort)
@@ -163,7 +163,7 @@ describe('viewOf', () => {
       { ...node('hi', 'g', 0, 0), name: 'inlet' },
       node('x'), node('y'),
     ]
-    nodes[0].name = 'group'
+    nodes[0].group = true
     const params = [...io('lo'), ...io('hi'), ...io('x'), ...io('y')]
     const g = graphOf(nodes, params, [['x', 'lo'], ['y', 'hi']])
 
@@ -194,7 +194,7 @@ describe('viewOf', () => {
 
   test('hides edges internal to a group', () => {
     const nodes = [node('g'), node('a', 'g'), node('b', 'g')]
-    nodes[0].name = 'group'
+    nodes[0].group = true
     const g = graphOf(nodes, [...io('a'), ...io('b')], [['a', 'b']])
     expect(view(g).edges).toHaveLength(0)
     expect(view(g, 'g').edges).toHaveLength(1)

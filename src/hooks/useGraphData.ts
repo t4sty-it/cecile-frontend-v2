@@ -3,12 +3,12 @@ import { Node } from "@/data/Node";
 import { Param } from "@/data/Param";
 import { add, Point } from "@/data/Point";
 import { graphOf, union, valuesOf } from "@/lib/graph";
-import { exec } from "@/lib/lang";
+import { Definitions, execProgram } from "@/lib/lang";
 import { useEffect, useState } from "react";
 import { nodes as nodeConstructors } from '@/lib/commands/node/nodes'
 import { buildNode } from "@/lib/commands/node";
 import { useMousePosition } from "./useMousePosition";
-import { descendantIds, GraphData, groupNodes, PortBuilder, ungroupNode, viewOf } from "@/lib/group";
+import { descendantIds, GraphData, GROUP_NODE_NAME, groupNodes, PortBuilder, ungroupNode, viewOf } from "@/lib/group";
 
 const newId = () => '' + Math.random()
 
@@ -18,6 +18,8 @@ export function useGraphData() {
   const [params, setParams] = useState<Param[]>([])
   const [edges, setEdges] = useState<Edge[]>([])
   const [error, setError] = useState<string | null>(null)
+  // group templates defined from the console, global to the patch
+  const [definitions, setDefinitions] = useState<Definitions>({})
 
   useEffect(() => {
     if (error === null) return
@@ -148,22 +150,26 @@ export function useGraphData() {
       graph.edges.map(e => ({id: `${e.src.id}:${e.dst.id}`, src: e.src.id, dst: e.dst.id }))
     )
     const srcGraph = langGraphOf({ nodes, params, edges })
+    // selectors only see the current level; the diff never contains selected
+    // nodes, so the pins they expose don't leak into the graph
     const levelGraph = langGraphOf(viewOf(nodes, params, edges, parentId))
 
-    // selected group pins come back re-parented onto their group: restore the port params
-    const paramsById = new Map(params.map(p => [p.id, p]))
-    const unpin = (param: Param) => {
-      const original = paramsById.get(param.id)
-      return original != null && original.parentId != param.parentId ? original : param
-    }
+    const buildGroup = (): Node => ({
+      id: newId(),
+      name: GROUP_NODE_NAME,
+      group: true,
+      position: mousePosition,
+      parentId,
+    })
 
     try {
-      const diffGraph = exec(cmd, levelGraph, nodeBuilders, mousePosition, {}) // TODO pass the actual metaCommands
-      const [diffNodes, diffParams, diffEdges] = valuesOf(diffGraph)
-      const [newNodes, newParams, newEdges] = valuesOf(union(
-        srcGraph,
-        graphOf(diffNodes, diffParams.map(unpin), diffEdges),
-      ))
+      const { diff, definitions: newDefinitions } = execProgram(
+        cmd, levelGraph, nodeBuilders, mousePosition,
+        {}, // TODO pass the actual metaCommands
+        { definitions, buildGroup },
+      )
+      const [newNodes, newParams, newEdges] = valuesOf(union(srcGraph, diff))
+      setDefinitions(newDefinitions)
       setGraph({
         nodes: newNodes,
         params: newParams,
@@ -183,7 +189,7 @@ export function useGraphData() {
   const clearError = () => setError(null)
 
   return {
-    nodes, params, edges, error,
+    nodes, params, edges, error, definitions,
     toggleConnection, moveNode, moveNodes,
     addNode, removeNode, updateParam,
     group, ungroup,

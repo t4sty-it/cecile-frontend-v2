@@ -9,7 +9,7 @@ export type PortType = 'inlet' | 'outlet'
 export type GraphData = { nodes: Node[], params: Param[], edges: Edge[] }
 export type PortBuilder = (type: PortType, position: Point, parentId: string) => [Node, Param[]]
 
-export const isGroup = (node: Node) => node.name === GROUP_NODE_NAME
+export const isGroup = (node: Node) => node.group === true
 export const isPort = (node: Node) => node.name === 'inlet' || node.name === 'outlet'
 
 const PORT_SPACING = 120
@@ -125,6 +125,7 @@ export function groupNodes(
   const group: Node = {
     id: groupId,
     name: GROUP_NODE_NAME,
+    group: true,
     position: {
       x: members.reduce((acc, n) => acc + n.position.x, 0) / members.length,
       y: members.reduce((acc, n) => acc + n.position.y, 0) / members.length,
@@ -182,8 +183,23 @@ const pinName = (type: 'input' | 'output', idx: number) =>
     ? type
     : `${type === 'input' ? 'i' : 'o'}${idx}`
 
-// expects a normalized graph: a group's pins are the outer side of its ports,
+// a group's pins are the outer side of its ports, re-parented onto the group,
 // ordered top to bottom and named after their labels
+export function pinsOf(nodes: Node[], params: Param[], group: Node): Param[] {
+  const ports = nodes
+    .filter(n => n.parentId === group.id && isPort(n))
+    .toSorted((a, b) => a.position.y - b.position.y)
+  const pinsOfType = (type: PortType) => ports
+    .filter(p => p.name === type)
+    .map((port, idx) => {
+      const param = portParam(params, port, outerParamName(port))
+      return { ...param, parentId: group.id, name: port.label ?? pinName(param.type as 'input' | 'output', idx) }
+    })
+  return [...pinsOfType('inlet'), ...pinsOfType('outlet')]
+    .map((p, idx) => ({ ...p, offset: pinOffset(p.type as 'input' | 'output', idx) }))
+}
+
+// expects a normalized graph
 export function viewOf(
   nodes: Node[],
   params: Param[],
@@ -195,19 +211,7 @@ export function viewOf(
   const anchor = anchorOf(byId)
   const visibleNodes = nodes.filter(n => n.parentId === parentId)
 
-  const pins = visibleNodes.filter(isGroup).flatMap(group => {
-    const ports = nodes
-      .filter(n => n.parentId === group.id && isPort(n))
-      .toSorted((a, b) => a.position.y - b.position.y)
-    const pinsOf = (type: PortType) => ports
-      .filter(p => p.name === type)
-      .map((port, idx) => {
-        const param = portParam(params, port, outerParamName(port))
-        return { ...param, parentId: group.id, name: port.label ?? pinName(param.type as 'input' | 'output', idx) }
-      })
-    return [...pinsOf('inlet'), ...pinsOf('outlet')]
-      .map((p, idx) => ({ ...p, offset: pinOffset(p.type as 'input' | 'output', idx) }))
-  })
+  const pins = visibleNodes.filter(isGroup).flatMap(group => pinsOf(nodes, params, group))
   const pinById = new Map(pins.map(p => [p.id, p]))
 
   const atLevel = (p: Param) => anchor(p).parentId === parentId

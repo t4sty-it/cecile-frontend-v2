@@ -111,8 +111,9 @@ export default function GraphPage() {
       const head = input.length > tail.length
         ? input.slice(0, input.length - tail.length)
         : ''
+      const availableCommands = () => [...Object.keys(graph.definitions), ...commands]
       if (tail.length > 0)
-        setHints(fuzzyFind(tail, commands).map(r => head + r))
+        setHints(fuzzyFind(tail, availableCommands()).map(r => head + r))
       else setHints([])
     }
     else setHints([])

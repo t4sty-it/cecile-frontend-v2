@@ -5,7 +5,8 @@ import { Point } from "@/data/Point";
 import { fuzzyFilter, fuzzyFind, reverseFuzzyFilter } from "@/utils/fuzzyFind";
 import * as g from '../graph';
 import * as s from '../set';
-import { HelpedCommand, MetaCommand, parse } from "./parser";
+import { isGroup, isPort, pinsOf } from "../group";
+import { Definition, HelpedCommand, MetaCommand, parse } from "./parser";
 
 type BaseTerm = {
     node: string | null,
@@ -38,56 +39,125 @@ const isMetaCommand = id<MetaCommand>('meta')
 const isCreator = id<Creator>('create')
 const isSelector = id<Selector>('select')
 const isConnector = id<Connector>('connect')
+const isDefinition = id<Definition>('define')
 
 
 type Term = Creator | Selector
 type Graph = g.Graph<Node, Param>
+type NodeBuilders = Record<string, () => [Node, Param[]]>
+
+// group templates by name, as the parsed lines of their body
+export type Definitions = Record<string, Definition['body']>
+
+export type Env = {
+  definitions?: Definitions,
+  // a fresh group node at the current level; templates can't be instantiated without it
+  buildGroup?: () => Node,
+}
+
+type Context = {
+  definitions: Definitions,
+  buildGroup?: () => Node,
+  // templates being instantiated, to catch self-reference
+  stack: string[],
+}
 
 // Thrown for invalid-but-anticipated user input (e.g. an unresolvable
 // outlet/inlet name) so callers can catch it and show a message, as opposed
 // to a genuine programming error.
 export class CommandError extends Error {}
 
-// Executes a program of one or more lines and returns the diff to union into
-// `graph`. Lines run in order, each as if typed on its own: selectors in a
-// line also see the nodes created by the lines before it. Nothing is applied
-// unless every line succeeds, since the whole diff is returned at once.
 export function exec(
   command: string,
   graph: Graph,
-  nodeBuilders: Record<string, () => [Node, Param[]]>,
+  nodeBuilders: NodeBuilders,
   origin: Point,
-  metaCommands: Record<string, (...args: string[]) => void>
+  metaCommands: Record<string, (...args: string[]) => void>,
+  env: Env = {},
 ): Graph {
+  return execProgram(command, graph, nodeBuilders, origin, metaCommands, env).diff
+}
 
-  const lines = parse(command) as unknown[]
+// Executes a program of one or more lines and returns the diff to union into
+// `graph`, along with the definitions known after it. Lines run in order, each
+// as if typed on its own: selectors in a line also see the nodes created by
+// the lines before it. Nothing is applied unless every line succeeds, since
+// the whole diff is returned at once.
+export function execProgram(
+  command: string,
+  graph: Graph,
+  nodeBuilders: NodeBuilders,
+  origin: Point,
+  metaCommands: Record<string, (...args: string[]) => void>,
+  env: Env = {},
+): { diff: Graph, definitions: Definitions } {
+  return execLines(
+    parse(command) as unknown[],
+    graph, nodeBuilders, origin, metaCommands,
+    { definitions: env.definitions ?? {}, buildGroup: env.buildGroup, stack: [] },
+  )
+}
 
-  return lines.reduce<{ diff: Graph, origin: Point }>(
-    ({ diff, origin }, line) => {
+function execLines(
+  lines: unknown[],
+  graph: Graph,
+  nodeBuilders: NodeBuilders,
+  origin: Point,
+  metaCommands: Record<string, (...args: string[]) => void>,
+  ctx: Context,
+): { diff: Graph, definitions: Definitions } {
+
+  const { diff, definitions } = lines.reduce<{ diff: Graph, origin: Point, definitions: Definitions }>(
+    ({ diff, origin, definitions }, line) => {
       if (isMetaCommand(line)) {
         execMeta(metaCommands, line)
-        return { diff, origin }
+        return { diff, origin, definitions }
       }
 
       if (isHelpedCommand(line))
         throw new CommandError('Help (?) is not implemented yet')
 
-      const current = g.union(graph, diff)
-      const lineDiff = execLine(line as (Term | Connector)[], current, nodeBuilders, origin)
+      if (isDefinition(line))
+        return { diff, origin, definitions: { ...definitions, [line.name]: line.body } }
+
+      const current = g.union(graph, levelView(diff))
+      const lineDiff = execLine(line as (Term | Connector)[], current, nodeBuilders, origin, { ...ctx, definitions })
 
       // the next line starts below the nodes this one created
-      const created = s.valuesOf(s.subtract(lineDiff.nodes, current.nodes))
+      const shown = levelView(lineDiff)
+      const created = s.valuesOf(shown.nodes)
       const bottom = Math.max(0, ...created.map(node =>
-        node.position.y - origin.y + nodeHeight(paramsOf(lineDiff, node).length)
+        node.position.y - origin.y + nodeHeight(paramsOf(shown, node).length)
       ))
 
       return {
         diff: g.union(diff, lineDiff),
         origin: created.length ? p.add(origin, p.of(0, bottom + lineGap)) : origin,
+        definitions,
       }
     },
-    { diff: g.graphOf<Node, Param>([], [], []), origin }
-  ).diff
+    { diff: emptyGraph(), origin, definitions: ctx.definitions }
+  )
+  return { diff, definitions }
+}
+
+const emptyGraph = () => g.graphOf<Node, Param>([], [], [])
+
+// what a line sees of the nodes it created: the top ones, with groups showing
+// their pins and hiding their contents
+function levelView(graph: Graph): Graph {
+  const nodes = s.valuesOf(graph.nodes)
+  const params = s.valuesOf(graph.params)
+  const ids = new Set(nodes.map(n => n.id))
+  const top = nodes.filter(n => n.parentId == null || !ids.has(n.parentId))
+
+  return g.graphOf(
+    top,
+    top.flatMap(n => isGroup(n)
+      ? pinsOf(nodes, params, n)
+      : params.filter(param => param.parentId == n.id)),
+    [],
+  )
 }
 
 const lineGap = 60
@@ -97,13 +167,16 @@ function paramsOf(graph: Graph, node: Node): Param[] {
 }
 
 // SELECT -> CREATE -> CONNECT
+// The diff holds what was created and wired: selected nodes are left out, as
+// they already exist (and selected groups only expose their pins).
 function execLine(
   parsedTerms: (Term | Connector)[],
   graph: Graph,
-  nodeBuilders: Record<string, () => [Node, Param[]]>,
+  nodeBuilders: NodeBuilders,
   origin: Point,
+  ctx: Context,
 ): Graph {
-  return parsedTerms
+  const terms = parsedTerms
     .map(cmd => isSelector(cmd)
       ? execSelect(graph, cmd)
       : cmd)
@@ -113,16 +186,24 @@ function execLine(
           cmd,
           p.add(
             origin,
-            
+
             // 1 every 2 commands is a selector, so we account for that
             // by dividing idx by 2
             horizontalOffset(idx/2)
-          )
+          ),
+          ctx,
         )
       : cmd)
-    .map((cmd, idx, arr) => isConnector(cmd)
-      ? (execConnect(arr[idx - 1] as Graph, cmd, arr[idx + 1] as Graph))
-      : cmd)
+
+  // created groups are wired through their pins
+  const wirable = (idx: number) => isCreator(parsedTerms[idx])
+    ? levelView(terms[idx] as Graph)
+    : terms[idx] as Graph
+
+  return terms
+    .map((cmd, idx) => isConnector(cmd)
+      ? g.graphOf<Node, Param>([], [], execConnect(wirable(idx - 1), cmd, wirable(idx + 1)).edges)
+      : isCreator(parsedTerms[idx]) ? cmd as Graph : emptyGraph())
     .reduce((acc, cur) => g.union(acc, cur))
 }
 
@@ -162,15 +243,19 @@ function matchNode(name: string | null, label: string | null, node: Node): boole
 }
 
 export function execCreate(
-  nodeBuilders: Record<string, () => [Node, Param[]]>,
+  nodeBuilders: NodeBuilders,
   cmd: Creator,
   origin: Point,
+  ctx: Context = { definitions: {}, stack: [] },
 ): Graph {
 
-  const nodeName = fuzzyFind(cmd.node, Object.keys(nodeBuilders))[0]
+  const nodeName = fuzzyFind(cmd.node, [...Object.keys(ctx.definitions), ...Object.keys(nodeBuilders)])[0]
 
   if (nodeName == null)
     throw new CommandError(`"${cmd.node}" is not a valid module name`)
+
+  if (Object.hasOwn(ctx.definitions, nodeName))
+    return execInstantiate(nodeBuilders, cmd, nodeName, origin, ctx)
 
   const toLabelledNode: (i:[Node, Param[]]) => [Node, Param[]] =
   ([node, params]) => [
@@ -230,6 +315,49 @@ export function execCreate(
       ),
       g.graphOf<Node, Param>([],[],[])
     )
+}
+
+// each instance is a group whose children are what the template body creates,
+// run on its own; definitions in the body don't leak out of it
+function execInstantiate(
+  nodeBuilders: NodeBuilders,
+  cmd: Creator,
+  name: string,
+  origin: Point,
+  ctx: Context,
+): Graph {
+  if (ctx.stack.includes(name))
+    throw new CommandError(`"${name}" is defined in terms of itself`)
+  if (ctx.buildGroup == null)
+    throw new CommandError(`Cannot create the group "${name}" here`)
+  if (cmd.params)
+    throw new CommandError(`"${name}" is a group: its params can't be set`)
+
+  const body = ctx.definitions[name]
+  const inner = { ...ctx, stack: [...ctx.stack, name] }
+
+  return [...Array(cmd.quantity ?? 1).keys()]
+    .map(idx => {
+      const { diff } = execLines(body, emptyGraph(), nodeBuilders, origin, {}, inner)
+      const nodes = s.valuesOf(diff.nodes)
+      const ids = new Set(nodes.map(n => n.id))
+      const top = (n: Node) => n.parentId == null || !ids.has(n.parentId)
+
+      const group: Node = {
+        ...ctx.buildGroup!(),
+        name,
+        label: cmd.label ?? undefined,
+        group: true,
+        position: p.add(origin, verticalOffset(nodes.filter(n => top(n) && isPort(n)).length, idx)),
+      }
+
+      return g.graphOf<Node, Param>(
+        [group, ...nodes.map(n => top(n) ? { ...n, parentId: group.id } : n)],
+        diff.params,
+        diff.edges,
+      )
+    })
+    .reduce((acc, cur) => g.union(acc, cur))
 }
 
 export function execConnect(src: Graph, op: Connector, dst: Graph): Graph {
