@@ -9,6 +9,8 @@ type Modifiers = {
   'Shift': boolean,
   'Meta': boolean,
   'Space': boolean,
+  'Delete': boolean,
+  'Backspace': boolean,
 }
 
 type Modifier = keyof Modifiers
@@ -24,14 +26,22 @@ const toKey = (e: KeyboardEvent): Modifier | Char | null => {
     if (e.code.startsWith(m)) return m
   }
   if (e.code === 'Space') return 'Space'
+  if (e.key === 'Backspace') return 'Backspace'
+  if (e.key === 'Delete') return 'Delete'
   return null
 }
 
+// Typing in a text field must not trigger shortcuts (Backspace would delete
+// the selection while editing a param).
+const isEditable = (target: EventTarget | null) =>
+  target instanceof HTMLElement &&
+  (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))
+
 export function useKeyboardShortcuts(shortcuts: [Shortcut, (e: KeyboardEvent) => void][]) {
 
-  // const [shortcut, setShortcut] = useState<Shortcut>([])
   const shortcut = useRef<Shortcut>([])
   const addKey = (e: KeyboardEvent) => {
+    if (isEditable(e.target)) return
     const key = toKey(e)
     if (key == null) return
     // Modifiers still held from a previous shortcut were cleared on keyup,
@@ -56,7 +66,6 @@ export function useKeyboardShortcuts(shortcuts: [Shortcut, (e: KeyboardEvent) =>
 
   const applyShortcuts = (e: KeyboardEvent) => {
     if (shortcut.current.length) {
-      console.log({shortcut: shortcut.current})
       const action = indexedShortcuts[shortcutIndex(shortcut.current)]
   
       if (action != null) {

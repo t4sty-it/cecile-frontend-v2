@@ -58,6 +58,19 @@ export default function GraphPage() {
     selection.clear()
   }
 
+  const selectAll = () => {
+    selection.set(view.nodes.map(n => n.id))
+  }
+
+  const deselectAll = () => {
+    selection.set([])
+  }
+
+  const deleteSelected = () => {
+    selection.nodes.forEach(id => graph.removeNode(id))
+    selection.set([])
+  }
+
   const onPaletteSelect = (nodeType: string) => {
     const [node, params] = buildNode(nodeType, {
       nodeOverrides: { name: nodeType, position: mousePositionRef.current, parentId: currentParentId }
@@ -80,7 +93,11 @@ export default function GraphPage() {
     [['m'], () => midiLearn.start(onMidiLearned)],
     [['p'], () => setPaletteOpen(true)],
     [['g'], groupSelection],
-    [['u'], ungroupSelection],
+    [['Shift', 'g'], ungroupSelection],
+    [['a'], selectAll],
+    [['Shift', 'a'], deselectAll],
+    [['Backspace'], deleteSelected],
+    [['Delete'], deleteSelected]
   ])
 
   useEffect(() => {

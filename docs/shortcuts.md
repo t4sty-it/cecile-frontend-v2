@@ -11,7 +11,10 @@ the console instead, so the single-key shortcuts below don't fire.
 | <kbd>p</kbd> | Open the command palette, to place a module from a list. |
 | <kbd>m</kbd> | Start [MIDI learn](../README.md#midi-learn): touch a control on your MIDI device and the matching module is placed under the cursor. |
 | <kbd>g</kbd> | Collapse the selected nodes into a [group](language.md#groups). |
-| <kbd>u</kbd> | Ungroup the selected groups, putting their contents back in place. |
+| <kbd>Shift</kbd> + <kbd>g</kbd> | Ungroup the selected groups, putting their contents back in place. |
+| <kbd>a</kbd> | Select every module at the current level. |
+| <kbd>Shift</kbd> + <kbd>a</kbd> | Clear the selection. |
+| <kbd>Delete</kbd> / <kbd>Backspace</kbd> | Delete the selected modules, with their wires (and contents, for groups). |
 | <kbd>Esc</kbd> | Close the docs or the command palette, or cancel placing a module. |
 
 ## Console

@@ -131,9 +131,15 @@ be asked for permission the first time.
 |-----|--------|
 | <kbd>Space</kbd> | Focus the command console |
 | <kbd>m</kbd> | Start MIDI learn |
+| <kbd>p</kbd> | Open the command palette |
+| <kbd>g</kbd> / <kbd>Shift</kbd>+<kbd>g</kbd> | Group the selection / ungroup the selected groups |
+| <kbd>a</kbd> / <kbd>Shift</kbd>+<kbd>a</kbd> | Select all / clear the selection |
+| <kbd>Delete</kbd> / <kbd>Backspace</kbd> | Delete the selection |
 | <kbd>Enter</kbd> | Run the command in the console |
 | <kbd>Shift</kbd>+<kbd>Enter</kbd> | New line in the console |
 | <kbd>↑</kbd> / <kbd>↓</kbd> | Browse the command history (from the first / last line) |
+
+See [Shortcuts](docs/shortcuts.md) for the full list, including mouse gestures.
 
 ## Development
 
