@@ -1,5 +1,5 @@
 ---
-status: new
+status: done
 type: docs
 tags:
   - untagged
