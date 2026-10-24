@@ -83,7 +83,11 @@ export function useKeyboardShortcuts(shortcuts: [Shortcut, (e: KeyboardEvent) =>
     const onKeyUp = (e: KeyboardEvent) => applyShortcutsRef.current(e)
     window.addEventListener('keydown', addKey)
     window.addEventListener('keyup', onKeyUp)
+    // Keys released while the window is unfocused (e.g. Alt+Tab) never fire
+    // keyup and would otherwise stay in the shortcut.
+    window.addEventListener('blur', clearShortcut)
     return () => {
+      window.removeEventListener('blur', clearShortcut)
       window.removeEventListener('keyup', onKeyUp)
       window.removeEventListener('keydown', addKey)
     }
