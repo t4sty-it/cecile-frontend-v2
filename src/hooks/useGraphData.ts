@@ -1,4 +1,3 @@
-import { Edge } from "@/data/Edge";
 import { Node } from "@/data/Node";
 import { Param } from "@/data/Param";
 import { add, Point } from "@/data/Point";
@@ -9,17 +8,28 @@ import { nodes as nodeConstructors } from '@/lib/commands/node/nodes'
 import { buildNode } from "@/lib/commands/node";
 import { useMousePosition } from "./useMousePosition";
 import { descendantIds, GraphData, GROUP_NODE_NAME, groupNodes, PortBuilder, ungroupNode, viewOf } from "@/lib/group";
+import { useHistory } from "@/lib/history/useHistory";
 
 const newId = () => '' + Math.random()
 
+// everything undo/redo restores, kept in one value so an action is one step
+type Snapshot = GraphData & { definitions: Definitions }
+
+const emptySnapshot: Snapshot = { nodes: [], params: [], edges: [], definitions: {} }
+
 export function useGraphData() {
 
-  const [nodes, setNodes] = useState<Node[]>([])
-  const [params, setParams] = useState<Param[]>([])
-  const [edges, setEdges] = useState<Edge[]>([])
+  // `push` changes the graph without recording it, `commit` records it as an
+  // undo step: gestures (drags, placement) push on every move and commit at the end
+  const [snapshot, push, commit, navigate] = useHistory(emptySnapshot)
+  // definitions are group templates defined from the console, global to the patch
+  const { nodes, params, edges, definitions } = snapshot
   const [error, setError] = useState<string | null>(null)
-  // group templates defined from the console, global to the patch
-  const [definitions, setDefinitions] = useState<Definitions>({})
+
+  const change = (f: (s: Snapshot) => Snapshot) => {
+    push(f)
+    commit()
+  }
 
   useEffect(() => {
     if (error === null) return
@@ -40,34 +50,34 @@ export function useGraphData() {
       e.dst.id == dst.id
     )
 
-    if (edgeIdx >= 0)
-      setEdges(edges => edges.toSpliced(edgeIdx, 1))
-    else
-      setEdges(edges => [...edges, {src, dst}])
+    change(s => ({
+      ...s,
+      edges: edgeIdx >= 0
+        ? s.edges.toSpliced(edgeIdx, 1)
+        : [...s.edges, {src, dst}]
+    }))
   }
 
+  // moves are drafts: the caller commits when the gesture ends
   const moveNode = (id: string, point: Point) => {
-    setNodes(nodes =>
-      nodes.map(node =>
+    push(s => ({
+      ...s,
+      nodes: s.nodes.map(node =>
         node.id === id
           ? {...node, position: point}
-          : node))
+          : node)
+    }))
   }
 
   const moveNodes = (ids: string[], delta: Point) => {
-    setNodes(nodes =>
-      nodes.map(node =>
+    push(s => ({
+      ...s,
+      nodes: s.nodes.map(node =>
         ids.includes(node.id)
           ? {...node, position: add(node.position, delta)}
           : node
       )
-    )
-  }
-
-  const setGraph = (graph: GraphData) => {
-    setNodes(graph.nodes)
-    setParams(graph.params)
-    setEdges(graph.edges)
+    }))
   }
 
   const buildPort: PortBuilder = (type, position, parentId) => {
@@ -77,36 +87,50 @@ export function useGraphData() {
 
   const group = (ids: string[], parentId: string | undefined): string => {
     const groupId = newId()
-    setGraph(groupNodes({ nodes, params, edges }, ids, parentId, groupId, buildPort))
+    change(s => ({ ...s, ...groupNodes(s, ids, parentId, groupId, buildPort) }))
     return groupId
   }
 
   const ungroup = (groupIds: string[]) => {
-    setGraph(groupIds.reduce(ungroupNode, { nodes, params, edges }))
+    change(s => ({ ...s, ...groupIds.reduce(ungroupNode, s) }))
   }
 
-  const addNode = (node: Node, params: Param[]) => {
-    setNodes(nodes => [...nodes, node])
+  // `draft` leaves the step open, e.g. while the new node is being placed
+  const addNode = (node: Node, params: Param[], { draft = false } = {}) => {
     const paramsWithFixedOffset = params.map(_fixParamOffset)
-    setParams(p => [...p, ...paramsWithFixedOffset])
+    const f = (s: Snapshot) => ({
+      ...s,
+      nodes: [...s.nodes, node],
+      params: [...s.params, ...paramsWithFixedOffset],
+    })
+    if (draft) push(f)
+    else change(f)
   }
 
-  const removeNode = (id: string) => {
-    const removed = descendantIds(nodes, [id])
-    setNodes(nodes => nodes.filter(node => !removed.includes(node.id)))
-    setParams(params => params.filter(param => !removed.includes(param.parentId)))
-    setEdges(edges => edges.filter(edge =>
-      !removed.includes(edge.src.parentId) && !removed.includes(edge.dst.parentId)))
+  const removeNodes = (ids: string[]) => {
+    change(s => {
+      const removed = descendantIds(s.nodes, ids)
+      return {
+        ...s,
+        nodes: s.nodes.filter(node => !removed.includes(node.id)),
+        params: s.params.filter(param => !removed.includes(param.parentId)),
+        edges: s.edges.filter(edge =>
+          !removed.includes(edge.src.parentId) && !removed.includes(edge.dst.parentId)),
+      }
+    })
   }
 
   const updateParam = (id: string, value: string | number | File) => {
-    setParams(params => params.map(param => param.id == id
-      ? ({
-        ...param,
-        value
-      })
-      : param  
-    ))
+    change(s => ({
+      ...s,
+      params: s.params.map(param => param.id == id
+        ? ({
+          ...param,
+          value
+        })
+        : param
+      )
+    }))
   }
 
   const _fixParamOffset = (param: Param, idx: number) => ({
@@ -121,7 +145,7 @@ export function useGraphData() {
 
     const nodeBuilders = Object.fromEntries(
       Object.keys(nodeConstructors)
-        .map(name => [ 
+        .map(name => [
           name,
           // build node; params will have zero offset...
           () => buildNode(
@@ -142,7 +166,7 @@ export function useGraphData() {
         ]
       )
     )
-    
+
     const langGraphOf = (graph: GraphData) => graphOf<Node, Param>(
       graph.nodes,
       graph.params,
@@ -168,15 +192,15 @@ export function useGraphData() {
         { definitions, buildGroup },
       )
       const [newNodes, newParams, newEdges] = valuesOf(union(srcGraph, diff))
-      setDefinitions(newDefinitions)
-      setGraph({
+      change(() => ({
         nodes: newNodes,
         params: newParams,
         edges: newEdges.map(e => ({
           src: newParams.find(p => p.id == e.src)!,
           dst: newParams.find(p => p.id == e.dst)!
         })),
-      })
+        definitions: newDefinitions,
+      }))
       setError(null)
       return true
     } catch (e) {
@@ -187,11 +211,18 @@ export function useGraphData() {
 
   const clearError = () => setError(null)
 
+  // undo/redo return the restored snapshot, so callers can prune stale references
+  const undo = () => navigate(-1)
+  const redo = () => navigate(1)
+  // drops uncommitted drafts, e.g. a cancelled placement
+  const revert = () => navigate(0)
+
   return {
     nodes, params, edges, error, definitions,
     toggleConnection, moveNode, moveNodes,
-    addNode, removeNode, updateParam,
+    addNode, removeNodes, updateParam,
     group, ungroup,
     execCommand, clearError,
+    commit, undo, redo, revert,
   }
 }

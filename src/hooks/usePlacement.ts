@@ -5,6 +5,7 @@ import { useEffect, useState } from "react"
 // (which drops it in place) or Escape (which cancels).
 export function usePlacement(
   onMove: (id: string, point: Point) => void,
+  onDrop: (id: string) => void,
   onCancel: (id: string) => void,
 ) {
   const [nodeId, setNodeId] = useState<string | null>(null)
@@ -16,6 +17,7 @@ export function usePlacement(
     // Capture + stop, so the dropping click doesn't also start a drag/selection
     const onMouseDown = (e: MouseEvent) => {
       e.stopPropagation()
+      onDrop(nodeId)
       setNodeId(null)
     }
     const onKeyDown = (e: KeyboardEvent) => {
@@ -32,7 +34,7 @@ export function usePlacement(
       window.removeEventListener('mousedown', onMouseDown, true)
       window.removeEventListener('keydown', onKeyDown)
     }
-  }, [nodeId, onMove, onCancel])
+  }, [nodeId, onMove, onDrop, onCancel])
 
   return { placing: nodeId !== null, start: setNodeId }
 }

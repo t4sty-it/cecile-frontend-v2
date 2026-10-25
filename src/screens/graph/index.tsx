@@ -5,6 +5,7 @@ import HelpButton from "@/components/HelpButton/HelpButton";
 import MidiLearnButton from "@/components/MidiLearnButton/MidiLearnButton";
 import PaletteButton from "@/components/PaletteButton/PaletteButton";
 import { Graph } from "@/data/Graph";
+import { Node } from "@/data/Node";
 import { useGraphData } from "@/hooks/useGraphData";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { useMidiLearn } from "@/hooks/useMidiLearn";
@@ -34,7 +35,7 @@ export default function GraphPage() {
   const mousePositionRef = useMousePositionRef()
   const midiLearn = useMidiLearn()
   const [paletteOpen, setPaletteOpen] = useState(false)
-  const placement = usePlacement(graph.moveNode, graph.removeNode)
+  const placement = usePlacement(graph.moveNode, graph.commit, graph.revert)
 
   const selection = useSelectionStore()
   const [currentParentId, setCurrentParentId] = useState<string | undefined>()
@@ -67,15 +68,26 @@ export default function GraphPage() {
   }
 
   const deleteSelected = () => {
-    selection.nodes.forEach(id => graph.removeNode(id))
+    graph.removeNodes(selection.nodes)
     selection.set([])
   }
 
-  const onPaletteSelect = (nodeType: string) => {
+  // the restored graph may lack the selected nodes or the group being viewed
+  const restore = (nodes: Node[]) => {
+    const ids = new Set(nodes.map(n => n.id))
+    if (currentParentId !== undefined && !ids.has(currentParentId)) navigate(undefined)
+    else selection.set(selection.nodes.filter(id => ids.has(id)))
+  }
+
+  const undo = () => restore(graph.undo().nodes)
+  const redo = () => restore(graph.redo().nodes)
+
+  const onPaletteSelect =(nodeType: string) => {
     const [node, params] = buildNode(nodeType, {
       nodeOverrides: { name: nodeType, position: mousePositionRef.current, parentId: currentParentId }
     })
-    graph.addNode(node, params)
+    // one undo step from creation to drop; cancelling the placement reverts it
+    graph.addNode(node, params, { draft: true })
     setPaletteOpen(false)
     placement.start(node.id)
   }
@@ -97,7 +109,12 @@ export default function GraphPage() {
     [['a'], selectAll],
     [['Shift', 'a'], deselectAll],
     [['Backspace'], deleteSelected],
-    [['Delete'], deleteSelected]
+    [['Delete'], deleteSelected],
+    [['Control', 'z'], undo],
+    [['Meta', 'z'], undo],
+    [['Control', 'Shift', 'z'], redo],
+    [['Meta', 'Shift', 'z'], redo],
+    [['Control', 'y'], redo],
   ])
 
   useEffect(() => {
@@ -144,7 +161,8 @@ export default function GraphPage() {
         params={view.params}
         edges={view.edges}
         onMoveNodes={graph.moveNodes}
-        onDeleteNode={graph.removeNode}
+        onMoveNodesEnd={graph.commit}
+        onDeleteNode={id => graph.removeNodes([id])}
         onToggleConnection={graph.toggleConnection}
         onUpdateParam={graph.updateParam}
         onEnterGroup={navigate}

@@ -20,6 +20,7 @@ export default function AppGraph({
   params,
   edges,
   onMoveNodes,
+  onMoveNodesEnd,
   onDeleteNode,
   onToggleConnection,
   onUpdateParam,
@@ -30,6 +31,7 @@ export default function AppGraph({
   edges: Edge[],
   onUpdateParam: (id: string, value: string | number | File) => void,
   onMoveNodes: (nodeIds: string[], delta: Point) => void,
+  onMoveNodesEnd: () => void,
   onDeleteNode: (nodeId: string) => void,
   onToggleConnection: (src: Param, dst: Param) => void,
   onEnterGroup: (nodeId: string) => void,
@@ -144,6 +146,8 @@ export default function AppGraph({
             )}
 
             onMove={(point: Point) => move(node, point)}
+
+            onMoveEnd={onMoveNodesEnd}
 
             onDelete={() => deleteNode(node.id)}
 

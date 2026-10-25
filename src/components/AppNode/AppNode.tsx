@@ -13,6 +13,7 @@ export default function AppNode({
   outputParams,
   style,
   onMove,
+  onMoveEnd,
   onDelete,
   onDoubleClick,
 }: {
@@ -23,6 +24,7 @@ export default function AppNode({
   outputParams?: ReactNode,
   style?: CSSProperties,
   onMove?: (delta: Point) => void,
+  onMoveEnd?: () => void,
   onDelete?: () => void,
   onDoubleClick?: () => void,
 }) {
@@ -59,11 +61,15 @@ export default function AppNode({
     
   }
   const dragRef = useLatest(drag)
+  const onMoveEndRef = useLatest(onMoveEnd)
   useEffect(() => {
     if (!dragging) return
 
     const onMouseMove = (e: MouseEvent) => dragRef.current(e)
-    const stopDrag = () => setDragging(false)
+    const stopDrag = () => {
+      setDragging(false)
+      onMoveEndRef.current?.()
+    }
     window.addEventListener('mousemove', onMouseMove)
     window.addEventListener('mouseup', stopDrag)
 
@@ -71,7 +77,7 @@ export default function AppNode({
       window.removeEventListener('mousemove', onMouseMove)
       window.removeEventListener('mouseup', stopDrag)
     }
-  }, [dragging, dragRef])
+  }, [dragging, dragRef, onMoveEndRef])
 
 
   const {nodes} = useSelectionStore()
