@@ -1,7 +1,8 @@
 # Shortcuts
 
 Keyboard shortcuts work anywhere on the canvas. While the console is focused, typing goes to
-the console instead, so the single-key shortcuts below don't fire.
+the console instead, so the editor shortcuts below don't fire (there, <kbd>Ctrl</kbd> + <kbd>z</kbd>
+undoes your typing, not the patch).
 
 ## Editor
 
@@ -15,6 +16,8 @@ the console instead, so the single-key shortcuts below don't fire.
 | <kbd>a</kbd> | Select every module at the current level. |
 | <kbd>Shift</kbd> + <kbd>a</kbd> | Clear the selection. |
 | <kbd>Delete</kbd> / <kbd>Backspace</kbd> | Delete the selected modules, with their wires (and contents, for groups). |
+| <kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>z</kbd> | Undo the last change to the patch: modules, wires, params, groups, commands and moves. |
+| <kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>Shift</kbd> + <kbd>z</kbd>, <kbd>Ctrl</kbd> + <kbd>y</kbd> | Redo. |
 | <kbd>Esc</kbd> | Close the docs or the command palette, or cancel placing a module. |
 
 ## Console
